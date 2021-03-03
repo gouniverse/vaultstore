@@ -1,4 +1,4 @@
-package vault
+package vaultstore
 
 import (
 	"crypto/md5"
