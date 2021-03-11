@@ -20,12 +20,20 @@ import (
 
 // Store defines a session store
 type Store struct {
-	vaultTableName string
-	db             *gorm.DB
+	vaultTableName     string
+	db                 *gorm.DB
+	automigrateEnabled bool
 }
 
 // StoreOption options for the vault store
 type StoreOption func(*Store)
+
+// WithAutoMigrate sets the table name for the cache store
+func WithAutoMigrate(automigrateEnabled bool) StoreOption {
+	return func(s *Store) {
+		s.automigrateEnabled = automigrateEnabled
+	}
+}
 
 // WithDriverAndDNS sets the driver and the DNS for the database for the cache store
 func WithDriverAndDNS(driverName string, dsn string) StoreOption {
@@ -64,10 +72,17 @@ func NewStore(opts ...StoreOption) *Store {
 	if store.vaultTableName == "" {
 		log.Panic("Vault store: vaultTableName is required")
 	}
-
-	store.db.Table(store.vaultTableName).AutoMigrate(&Vault{})
+	
+	if store.automigrateEnabled == true {
+		store.AutoMigrate()
+	}
 
 	return store
+}
+
+// AutoMigrate auto migrate
+func (st *Store) AutoMigrate() {
+	st.db.Table(st.vaultTableName).AutoMigrate(&Vault{})
 }
 
 // FindByID finds a user by ID
