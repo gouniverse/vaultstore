@@ -7,22 +7,30 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"log"
 	"math/rand"
+	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
 
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
+	"database/sql"
+	"github.com/doug-martin/goqu/v9"
+	_ "github.com/doug-martin/goqu/v9/dialect/mysql"
+	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
+	_ "github.com/doug-martin/goqu/v9/dialect/sqlite3"
+	_ "github.com/doug-martin/goqu/v9/dialect/sqlserver"
 )
 
 // Store defines a session store
 type Store struct {
 	vaultTableName     string
-	db                 *gorm.DB
+	db                 *sql.DB
+	dbDriverName       string
 	automigrateEnabled bool
+	debug              bool
 }
 
 // StoreOption options for the vault store
@@ -35,23 +43,18 @@ func WithAutoMigrate(automigrateEnabled bool) StoreOption {
 	}
 }
 
-// WithDriverAndDNS sets the driver and the DNS for the database for the cache store
-func WithDriverAndDNS(driverName string, dsn string) StoreOption {
-	db, err := gorm.Open(sqlite.Open(dsn), &gorm.Config{})
-
-	if err != nil {
-		panic("failed to connect database")
-	}
-
+// WithGormDb sets the GORM database for the cache store
+func WithDb(db *sql.DB) StoreOption {
 	return func(s *Store) {
 		s.db = db
+		s.dbDriverName = s.DriverName(s.db)
 	}
 }
 
-// WithGormDb sets the GORM database for the cache store
-func WithGormDb(db *gorm.DB) StoreOption {
+// WithDebug Enables debug logging
+func WithDebug(debug bool) StoreOption {
 	return func(s *Store) {
-		s.db = db
+		s.debug = debug
 	}
 }
 
@@ -63,35 +66,141 @@ func WithTableName(vaultTableName string) StoreOption {
 }
 
 // NewStore creates a new entity store
-func NewStore(opts ...StoreOption) *Store {
+func NewStore(opts ...StoreOption) (*Store, error) {
 	store := &Store{}
 	for _, opt := range opts {
 		opt(store)
 	}
 
-	if store.vaultTableName == "" {
-		log.Panic("Vault store: vaultTableName is required")
+	if store.db == nil {
+		return nil, errors.New("log store: db is required")
 	}
-	
+
+	if store.dbDriverName == "" {
+		return nil, errors.New("log store: dbDriverName is required")
+	}
+
+	if store.vaultTableName == "" {
+		return nil, errors.New("log store: vaultTableName is required")
+	}
+
 	if store.automigrateEnabled == true {
 		store.AutoMigrate()
 	}
 
-	return store
+	return store, nil
 }
 
 // AutoMigrate auto migrate
 func (st *Store) AutoMigrate() {
-	st.db.Table(st.vaultTableName).AutoMigrate(&Vault{})
+	sql := st.SqlCreateTable()
+
+	if st.debug {
+		log.Println(sql)
+	}
+
+	_, err := st.db.Exec(sql)
+
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	return
+}
+
+// DriverName finds the driver name from database
+func (st *Store) DriverName(db *sql.DB) string {
+	dv := reflect.ValueOf(db.Driver())
+	driverFullName := dv.Type().String()
+	if strings.Contains(driverFullName, "mysql") {
+		return "mysql"
+	}
+	if strings.Contains(driverFullName, "postgres") || strings.Contains(driverFullName, "pq") {
+		return "postgres"
+	}
+	if strings.Contains(driverFullName, "sqlite") {
+		return "sqlite"
+	}
+	if strings.Contains(driverFullName, "mssql") {
+		return "mssql"
+	}
+	return driverFullName
+}
+
+// EnableDebug - enables the debug option
+func (st *Store) EnableDebug(debug bool) {
+	st.debug = debug
+}
+
+// SqlCreateTable returns a SQL string for creating the setting table
+func (st *Store) SqlCreateTable() string {
+	sqlMysql := `
+	CREATE TABLE IF NOT EXISTS ` + st.vaultTableName + ` (
+	  id varchar(40) NOT NULL PRIMARY KEY,
+	  value longtext NOT NULL,
+	  createdat datetime NOT NULL,
+	  updatedat datetime,
+	  deletedat datetime
+	);
+	`
+
+	sqlPostgres := `
+	CREATE TABLE IF NOT EXISTS "` + st.vaultTableName + `" (
+	  "id" varchar(40) NOT NULL PRIMARY KEY,
+	  "value" longtext NOT NULL,
+	  "createdat" timestamptz(6) NOT NULL,
+	  "updatedat" datetime,
+	  "deletedat" timestamptz(6) 
+	)
+	`
+
+	sqlSqlite := `
+	CREATE TABLE IF NOT EXISTS "` + st.vaultTableName + `" (
+	  "id" varchar(40) NOT NULL PRIMARY KEY,
+	  "value" longtext NOT NULL,
+	  "createdat" datetime NOT NULL,
+	  "updatedat" datetime,
+	  "deletedat" datetime 
+	)
+	`
+
+	sql := "unsupported driver '" + st.dbDriverName + "'"
+
+	if st.dbDriverName == "mysql" {
+		sql = sqlMysql
+	}
+	if st.dbDriverName == "postgres" {
+		sql = sqlPostgres
+	}
+	if st.dbDriverName == "sqlite" {
+		sql = sqlSqlite
+	}
+
+	return sql
 }
 
 // FindByID finds a user by ID
 func (st *Store) FindByID(id string) *Vault {
 
 	vault := &Vault{}
-	result := st.db.Table(st.vaultTableName).Where("id = ?", id).First(&vault)
+	var sqlStr string
+	ds := goqu.Dialect(st.dbDriverName).From(st.vaultTableName).Where(goqu.Ex{"id": id})
+	sqlStr, _, _ = goqu.Dialect(st.dbDriverName).From(st.vaultTableName).Where(goqu.Ex{"id": id}).ToSQL()
+	log.Println(sqlStr)
+	if st.debug {
+		log.Println(sqlStr)
+	}
 
-	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+	found, err := ds.ScanStruct(vault)
+
+	if err != nil {
+		if st.debug {
+			log.Println(err.Error())
+		}
+		return nil
+	}
+	if !found {
 		return nil
 	}
 
@@ -106,7 +215,10 @@ func (st *Store) ValueDelete(id string) bool {
 		return true //
 	}
 
-	st.db.Table(st.vaultTableName).Delete(&entry)
+	de := goqu.Dialect(st.dbDriverName).From(st.vaultTableName).Where(goqu.Ex{"id": id}).Executor()
+	if _, err := de.Exec(); err != nil {
+		return false
+	}
 
 	return true
 }
@@ -131,14 +243,21 @@ func (st *Store) ValueRetrieve(id string, password string) (value string, err er
 // ValueStore creates a new vault entry and returns the ID
 func (st *Store) ValueStore(value string, password string) (id string, err error) {
 	encoded := encode(value, password)
-	var newEntry = Vault{Value: encoded}
+	var newEntry = Vault{ID: fmt.Sprintf("%v", time.Now().UnixNano()), Value: encoded}
 
-	dbResult := st.db.Table(st.vaultTableName).Create(&newEntry)
-
-	if dbResult.Error != nil {
-		return "", dbResult.Error
+	var sqlStr string
+	sqlStr, _, _ = goqu.Dialect(st.dbDriverName).Insert(st.vaultTableName).Rows(newEntry).ToSQL()
+	if st.debug {
+		log.Println(sqlStr)
 	}
 
+	_, err = st.db.Exec(sqlStr)
+	if err != nil {
+		if st.debug {
+			log.Println(err.Error())
+		}
+		return "", err
+	}
 	return newEntry.ID, nil
 }
 

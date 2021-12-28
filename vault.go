@@ -3,8 +3,8 @@ package vaultstore
 import (
 	"time"
 
+	"database/sql"
 	"github.com/gouniverse/uid"
-	"gorm.io/gorm"
 )
 
 // Vault a vault implementation
@@ -22,7 +22,7 @@ func (Vault) TableName() string {
 }
 
 // BeforeCreate adds UID to model
-func (c *Vault) BeforeCreate(tx *gorm.DB) (err error) {
+func (c *Vault) BeforeCreate(tx *sql.DB) (err error) {
 	uuid := uid.NanoUid()
 	c.ID = uuid
 	return nil

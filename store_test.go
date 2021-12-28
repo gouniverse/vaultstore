@@ -1,16 +1,17 @@
 package vaultstore
 
 import (
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
 	"os"
 	"testing"
+
+	"database/sql"
+	_ "github.com/mattn/go-sqlite3"
 )
 
-func InitDB(filepath string) *gorm.DB {
+func InitDB(filepath string) *sql.DB {
 	os.Remove(filepath) // remove database
 	dsn := filepath + "?parseTime=true"
-	db, err := gorm.Open(sqlite.Open(dsn), &gorm.Config{})
+	db, err := sql.Open("sqlite3", dsn)
 	if err != nil {
 		panic(err)
 	}
@@ -57,22 +58,7 @@ func TestWithAutoMigrate(t *testing.T) {
 	}
 }
 
-func TestWithDriverAndDNS(t *testing.T) {
-	s := Store{
-		vaultTableName:     "log_with_automigrate_true",
-		db:                 nil,
-		automigrateEnabled: true,
-	}
-
-	f := WithDriverAndDNS("test.driverName", "test.dsn")
-	f(&s)
-
-	if s.db == nil {
-		t.Fatalf("DB: Expected Initialized DB, received [%v]", s.db)
-	}
-}
-
-func TestWithGormDb(t *testing.T) {
+func TestWithDb(t *testing.T) {
 	s := Store{
 		vaultTableName:     "log_with_automigrate_true",
 		db:                 nil,
@@ -80,7 +66,7 @@ func TestWithGormDb(t *testing.T) {
 	}
 
 	db := InitDB("test")
-	f := WithGormDb(db)
+	f := WithDb(db)
 	f(&s)
 
 	if s.db == nil {
@@ -112,7 +98,7 @@ func TestWithTableName(t *testing.T) {
 func Test_Store_AutoMigrate(t *testing.T) {
 	db := InitDB("test_log_store_automigrate.db")
 
-	s := NewStore(WithGormDb(db), WithTableName("log_with_automigrate"), WithAutoMigrate(true))
+	s, _ := NewStore(WithDb(db), WithTableName("log_with_automigrate"), WithAutoMigrate(true))
 
 	s.AutoMigrate()
 
@@ -129,8 +115,8 @@ func Test_Store_AutoMigrate(t *testing.T) {
 
 func Test_Store_ValueStore(t *testing.T) {
 	db := InitDB("test_log_store_automigrate.db")
-	s := NewStore(WithGormDb(db), WithTableName("log_with_automigrate"), WithAutoMigrate(true))
-	_, err := s.ValueStore("test_val", "test_pass")
+	s, err := NewStore(WithDb(db), WithTableName("log_with_automigrate"), WithAutoMigrate(true))
+	_, err = s.ValueStore("test_val", "test_pass")
 	if err != nil {
 		t.Fatalf("ValueStore Failure: [%v]", err.Error())
 	}
@@ -138,7 +124,7 @@ func Test_Store_ValueStore(t *testing.T) {
 
 func Test_Store_ValueRetrieve(t *testing.T) {
 	db := InitDB("test_log_store_automigrate.db")
-	s := NewStore(WithGormDb(db), WithTableName("log_with_automigrate"), WithAutoMigrate(true))
+	s, err := NewStore(WithDb(db), WithTableName("log_with_automigrate"), WithAutoMigrate(true))
 	id, err := s.ValueStore("test_val", "test_pass")
 	if err != nil {
 		t.Fatalf("ValueStore Failure: [%v]", err.Error())
@@ -156,7 +142,7 @@ func Test_Store_ValueRetrieve(t *testing.T) {
 
 func Test_Store_ValueDelete(t *testing.T) {
 	db := InitDB("test_log_store_automigrate.db")
-	s := NewStore(WithGormDb(db), WithTableName("log_with_automigrate"), WithAutoMigrate(true))
+	s, err := NewStore(WithDb(db), WithTableName("log_with_automigrate"), WithAutoMigrate(true))
 	id, err := s.ValueStore("test_val", "test_pass")
 	if err != nil {
 		t.Fatalf("ValueStore Failure: [%v]", err.Error())
