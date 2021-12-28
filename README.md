@@ -4,13 +4,24 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/gouniverse/vaultstore)](https://goreportcard.com/report/github.com/gouniverse/vaultstore)
 [![PkgGoDev](https://pkg.go.dev/badge/github.com/gouniverse/vaultstore)](https://pkg.go.dev/github.com/gouniverse/vaultstore)
 
-
-Stores values to a database table.
+Vault - a secure value storage (data-at-rest) implementation for Go.
 
 ## Installation
 ```
 go get -u github.com/gouniverse/valuestore
 ```
+
+## Table Schema ##
+
+The following schema is used for the database.
+
+| vault       |                  |
+|-------------|------------------|
+| id          | String, UniqueId |
+| vault_value | Long Text        |
+| created_At  | DateTime         |
+| updated_at  | DateTime         |
+| deleted_at  | DateTime         |
 
 ## Setup
 
