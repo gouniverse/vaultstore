@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"database/sql"
+
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -19,20 +20,11 @@ func InitDB(filepath string) *sql.DB {
 	return db
 }
 
-func InitStore() *Store {
-	db := InitDB("test_log_store_automigrate.db")
-	return &Store{
-		vaultTableName:     "test_log_store_automigrate.db",
-		db:                 db,
-		automigrateEnabled: false,
-	}
-}
-
 func TestWithAutoMigrate(t *testing.T) {
-	db := InitDB("test_log_store_automigrate.db")
+	db := InitDB("test_vaultstore_with_automigrate.db")
 
 	s := Store{
-		vaultTableName:     "log_with_automigrate_false",
+		vaultTableName:     "vault_with_automigrate_false",
 		db:                 db,
 		automigrateEnabled: false,
 	}
@@ -45,7 +37,7 @@ func TestWithAutoMigrate(t *testing.T) {
 	}
 
 	s = Store{
-		vaultTableName:     "log_with_automigrate_true",
+		vaultTableName:     "vault_with_automigrate_true",
 		db:                 db,
 		automigrateEnabled: true,
 	}
@@ -60,12 +52,12 @@ func TestWithAutoMigrate(t *testing.T) {
 
 func TestWithDb(t *testing.T) {
 	s := Store{
-		vaultTableName:     "log_with_automigrate_true",
+		vaultTableName:     "vault",
 		db:                 nil,
 		automigrateEnabled: true,
 	}
 
-	db := InitDB("test")
+	db := InitDB("test_vaultstore_with_db")
 	f := WithDb(db)
 	f(&s)
 
@@ -85,25 +77,25 @@ func TestWithTableName(t *testing.T) {
 	f := WithTableName(table_name)
 	f(&s)
 	if s.vaultTableName != table_name {
-		t.Fatalf("Expected logTableName [%v], received [%v]", table_name, s.vaultTableName)
+		t.Fatalf("Expected vaultTableName [%v], received [%v]", table_name, s.vaultTableName)
 	}
 	table_name = "Table2"
 	f = WithTableName(table_name)
 	f(&s)
 	if s.vaultTableName != table_name {
-		t.Fatalf("Expected logTableName [%v], received [%v]", table_name, s.vaultTableName)
+		t.Fatalf("Expected vaultTableName [%v], received [%v]", table_name, s.vaultTableName)
 	}
 }
 
 func Test_Store_AutoMigrate(t *testing.T) {
-	db := InitDB("test_log_store_automigrate.db")
+	db := InitDB("test_vaultstore_automigrate.db")
 
-	s, _ := NewStore(WithDb(db), WithTableName("log_with_automigrate"), WithAutoMigrate(true))
+	s, _ := NewStore(WithDb(db), WithTableName("vault_automigrate"), WithAutoMigrate(true))
 
 	s.AutoMigrate()
 
-	if s.vaultTableName != "log_with_automigrate" {
-		t.Fatalf("Expected logTableName [log_with_automigrate] received [%v]", s.vaultTableName)
+	if s.vaultTableName != "vault_with_automigrate" {
+		t.Fatalf("Expected vaultTableName [vault_with_automigrate] received [%v]", s.vaultTableName)
 	}
 	if s.db == nil {
 		t.Fatalf("DB Init Failure")
@@ -114,8 +106,8 @@ func Test_Store_AutoMigrate(t *testing.T) {
 }
 
 func Test_Store_ValueStore(t *testing.T) {
-	db := InitDB("test_log_store_automigrate.db")
-	s, err := NewStore(WithDb(db), WithTableName("log_with_automigrate"), WithAutoMigrate(true))
+	db := InitDB("test_vaultstore_valuestore.db")
+	s, err := NewStore(WithDb(db), WithTableName("vault_store"), WithAutoMigrate(true))
 	_, err = s.ValueStore("test_val", "test_pass")
 	if err != nil {
 		t.Fatalf("ValueStore Failure: [%v]", err.Error())
@@ -123,8 +115,8 @@ func Test_Store_ValueStore(t *testing.T) {
 }
 
 func Test_Store_ValueRetrieve(t *testing.T) {
-	db := InitDB("test_log_store_automigrate.db")
-	s, err := NewStore(WithDb(db), WithTableName("log_with_automigrate"), WithAutoMigrate(true))
+	db := InitDB("test_vaultstore_valueretrieve.db")
+	s, err := NewStore(WithDb(db), WithTableName("vault_retrieve"), WithAutoMigrate(true))
 	id, err := s.ValueStore("test_val", "test_pass")
 	if err != nil {
 		t.Fatalf("ValueStore Failure: [%v]", err.Error())
@@ -141,16 +133,17 @@ func Test_Store_ValueRetrieve(t *testing.T) {
 }
 
 func Test_Store_ValueDelete(t *testing.T) {
-	db := InitDB("test_log_store_automigrate.db")
-	s, err := NewStore(WithDb(db), WithTableName("log_with_automigrate"), WithAutoMigrate(true))
+	db := InitDB("test_vaultstore_valuedelete.db")
+	s, err := NewStore(WithDb(db), WithTableName("vault_delete"), WithAutoMigrate(true))
+
 	id, err := s.ValueStore("test_val", "test_pass")
 	if err != nil {
 		t.Fatalf("ValueStore Failure: [%v]", err.Error())
 	}
 
-	ok := s.ValueDelete(id)
-	if !ok {
-		t.Fatalf("ValueDelete Failure")
+	errDelete := s.ValueDelete(id)
+	if errDelete != nil {
+		t.Fatalf("ValueDelete Failed: " + errDelete.Error())
 	}
 
 }

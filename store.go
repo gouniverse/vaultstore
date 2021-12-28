@@ -1,6 +1,7 @@
 package vaultstore
 
 import (
+	"context"
 	"crypto/md5"
 	"crypto/sha1"
 	"crypto/sha256"
@@ -17,11 +18,13 @@ import (
 	"time"
 
 	"database/sql"
+
 	"github.com/doug-martin/goqu/v9"
 	_ "github.com/doug-martin/goqu/v9/dialect/mysql"
 	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
 	_ "github.com/doug-martin/goqu/v9/dialect/sqlite3"
 	_ "github.com/doug-martin/goqu/v9/dialect/sqlserver"
+	"github.com/georgysavva/scany/sqlscan"
 )
 
 // Store defines a session store
@@ -133,94 +136,63 @@ func (st *Store) EnableDebug(debug bool) {
 	st.debug = debug
 }
 
-// SqlCreateTable returns a SQL string for creating the setting table
-func (st *Store) SqlCreateTable() string {
-	sqlMysql := `
-	CREATE TABLE IF NOT EXISTS ` + st.vaultTableName + ` (
-	  id varchar(40) NOT NULL PRIMARY KEY,
-	  value longtext NOT NULL,
-	  createdat datetime NOT NULL,
-	  updatedat datetime,
-	  deletedat datetime
-	);
-	`
-
-	sqlPostgres := `
-	CREATE TABLE IF NOT EXISTS "` + st.vaultTableName + `" (
-	  "id" varchar(40) NOT NULL PRIMARY KEY,
-	  "value" longtext NOT NULL,
-	  "createdat" timestamptz(6) NOT NULL,
-	  "updatedat" datetime,
-	  "deletedat" timestamptz(6) 
-	)
-	`
-
-	sqlSqlite := `
-	CREATE TABLE IF NOT EXISTS "` + st.vaultTableName + `" (
-	  "id" varchar(40) NOT NULL PRIMARY KEY,
-	  "value" longtext NOT NULL,
-	  "createdat" datetime NOT NULL,
-	  "updatedat" datetime,
-	  "deletedat" datetime 
-	)
-	`
-
-	sql := "unsupported driver '" + st.dbDriverName + "'"
-
-	if st.dbDriverName == "mysql" {
-		sql = sqlMysql
-	}
-	if st.dbDriverName == "postgres" {
-		sql = sqlPostgres
-	}
-	if st.dbDriverName == "sqlite" {
-		sql = sqlSqlite
-	}
-
-	return sql
-}
-
 // FindByID finds a user by ID
 func (st *Store) FindByID(id string) *Vault {
 
-	vault := &Vault{}
 	var sqlStr string
-	ds := goqu.Dialect(st.dbDriverName).From(st.vaultTableName).Where(goqu.Ex{"id": id})
-	sqlStr, _, _ = goqu.Dialect(st.dbDriverName).From(st.vaultTableName).Where(goqu.Ex{"id": id}).ToSQL()
-	log.Println(sqlStr)
+	sqlStr, _, _ = goqu.Dialect(st.dbDriverName).From(st.vaultTableName).Where(goqu.Ex{"id": id}).Limit(1).ToSQL()
+
 	if st.debug {
 		log.Println(sqlStr)
 	}
 
-	found, err := ds.ScanStruct(vault)
+	var vault Vault
+	err := sqlscan.Get(context.Background(), st.db, &vault, sqlStr)
 
 	if err != nil {
-		if st.debug {
-			log.Println(err.Error())
+		if err.Error() == sql.ErrNoRows.Error() {
+			return nil
 		}
-		return nil
-	}
-	if !found {
+		log.Fatal("Failed to execute query: ", err)
 		return nil
 	}
 
-	return vault
+	return &vault
+
+	// found, err := ds.ScanStruct(vault)
+
+	// if err != nil {
+	// 	if st.debug {
+	// 		log.Println(err.Error())
+	// 	}
+	// 	return nil
+	// }
+	// if !found {
+	// 	return nil
+	// }
+
+	// return vault
 }
 
 // ValueDelete removes all keys from the sessiom
-func (st *Store) ValueDelete(id string) bool {
-	entry := st.FindByID(id)
+func (st *Store) ValueDelete(id string) error {
+	sqlStr, _, _ := goqu.Dialect(st.dbDriverName).From(st.vaultTableName).Where(goqu.C("id").Eq(id), goqu.C("deleted_at").IsNull()).Delete().ToSQL()
 
-	if entry == nil {
-		return true //
+	if st.debug {
+		log.Println(sqlStr)
 	}
 
-	de := goqu.Dialect(st.dbDriverName).From(st.vaultTableName).Where(goqu.Ex{"id": id}).Executor()
-	if _, err := de.Exec(); err != nil {
-		return false
+	_, err := st.db.Exec(sqlStr)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil
+		}
+
+		log.Fatal("Failed to execute query: ", err)
+		return nil
 	}
 
-	return true
+	return nil
 }
 
 // ValueRetrieve retrieves a value of a vault entry
@@ -243,7 +215,12 @@ func (st *Store) ValueRetrieve(id string, password string) (value string, err er
 // ValueStore creates a new vault entry and returns the ID
 func (st *Store) ValueStore(value string, password string) (id string, err error) {
 	encoded := encode(value, password)
-	var newEntry = Vault{ID: fmt.Sprintf("%v", time.Now().UnixNano()), Value: encoded}
+	var newEntry = Vault{
+		ID:        fmt.Sprintf("%v", time.Now().UnixNano()),
+		Value:     encoded,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
 
 	var sqlStr string
 	sqlStr, _, _ = goqu.Dialect(st.dbDriverName).Insert(st.vaultTableName).Rows(newEntry).ToSQL()
