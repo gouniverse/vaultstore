@@ -94,14 +94,14 @@ func Test_Store_AutoMigrate(t *testing.T) {
 
 	s.AutoMigrate()
 
-	if s.vaultTableName != "vault_with_automigrate" {
-		t.Fatalf("Expected vaultTableName [vault_with_automigrate] received [%v]", s.vaultTableName)
+	if s.vaultTableName != "vault_automigrate" {
+		t.Fatalf("Expected vaultTableName [vault_automigrate] received [%v]", s.vaultTableName)
 	}
 	if s.db == nil {
 		t.Fatalf("DB Init Failure")
 	}
 	if s.automigrateEnabled != true {
-		t.Fatalf("Failure:  WithAutoMigrate")
+		t.Fatalf("Failure:  AutoMigrate")
 	}
 }
 
