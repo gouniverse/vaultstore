@@ -1,4 +1,4 @@
-module vaultstore
+module github.com/gouniverse/vaultstore
 
 go 1.17
 
