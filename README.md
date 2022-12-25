@@ -26,7 +26,11 @@ The following schema is used for the database.
 ## Setup
 
 ```
-vaultStore = vaultstore.NewStore(vaultstore.WithDb(databaseInstance), vaultstore.WithTableName("my_vault"), vaultstore.WithDebug(true))
+vaultStore, err := NewStore(NewStoreOptions{
+		VaultTableName:     "my_vault",
+		DB:                 databaseInstance,
+		AutomigrateEnabled: true,
+	})
 
 ```
 
