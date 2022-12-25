@@ -33,61 +33,73 @@ type Store struct {
 	db                 *sql.DB
 	dbDriverName       string
 	automigrateEnabled bool
-	debug              bool
+	debugEnabled       bool
 }
 
-// StoreOption options for the vault store
-type StoreOption func(*Store)
-
-// WithAutoMigrate sets the table name for the cache store
-func WithAutoMigrate(automigrateEnabled bool) StoreOption {
-	return func(s *Store) {
-		s.automigrateEnabled = automigrateEnabled
-	}
+// NewStoreOptions define the options for creating a new session store
+type NewStoreOptions struct {
+	VaultTableName     string
+	DB                 *sql.DB
+	DbDriverName       string
+	AutomigrateEnabled bool
+	DebugEnabled       bool
 }
 
-// WithGormDb sets the GORM database for the cache store
-func WithDb(db *sql.DB) StoreOption {
-	return func(s *Store) {
-		s.db = db
-		s.dbDriverName = s.DriverName(s.db)
-	}
-}
+// // StoreOption options for the vault store
+// type StoreOption func(*Store)
 
-// WithDebug Enables debug logging
-func WithDebug(debug bool) StoreOption {
-	return func(s *Store) {
-		s.debug = debug
-	}
-}
+// // WithAutoMigrate sets the table name for the cache store
+// func WithAutoMigrate(automigrateEnabled bool) StoreOption {
+// 	return func(s *Store) {
+// 		s.automigrateEnabled = automigrateEnabled
+// 	}
+// }
 
-// WithTableName sets the table name for the cache store
-func WithTableName(vaultTableName string) StoreOption {
-	return func(s *Store) {
-		s.vaultTableName = vaultTableName
-	}
-}
+// // WithGormDb sets the GORM database for the cache store
+// func WithDb(db *sql.DB) StoreOption {
+// 	return func(s *Store) {
+// 		s.db = db
+// 		s.dbDriverName = s.DriverName(s.db)
+// 	}
+// }
+
+// // WithDebug Enables debug logging
+// func WithDebug(debug bool) StoreOption {
+// 	return func(s *Store) {
+// 		s.debug = debug
+// 	}
+// }
+
+// // WithTableName sets the table name for the cache store
+// func WithTableName(vaultTableName string) StoreOption {
+// 	return func(s *Store) {
+// 		s.vaultTableName = vaultTableName
+// 	}
+// }
 
 // NewStore creates a new entity store
-func NewStore(opts ...StoreOption) (*Store, error) {
-	store := &Store{}
-	for _, opt := range opts {
-		opt(store)
-	}
-
-	if store.db == nil {
-		return nil, errors.New("log store: db is required")
-	}
-
-	if store.dbDriverName == "" {
-		return nil, errors.New("log store: dbDriverName is required")
+func NewStore(opts NewStoreOptions) (*Store, error) {
+	store := &Store{
+		vaultTableName:     opts.VaultTableName,
+		automigrateEnabled: opts.AutomigrateEnabled,
+		db:                 opts.DB,
+		dbDriverName:       opts.DbDriverName,
+		debugEnabled:       opts.DebugEnabled,
 	}
 
 	if store.vaultTableName == "" {
-		return nil, errors.New("log store: vaultTableName is required")
+		return nil, errors.New("vault store: vaultTableName is required")
 	}
 
-	if store.automigrateEnabled == true {
+	if store.db == nil {
+		return nil, errors.New("vault store: DB is required")
+	}
+
+	if store.dbDriverName == "" {
+		store.dbDriverName = store.DriverName(store.db)
+	}
+
+	if store.automigrateEnabled {
 		store.AutoMigrate()
 	}
 
@@ -98,7 +110,7 @@ func NewStore(opts ...StoreOption) (*Store, error) {
 func (st *Store) AutoMigrate() {
 	sql := st.SqlCreateTable()
 
-	if st.debug {
+	if st.debugEnabled {
 		log.Println(sql)
 	}
 
@@ -133,7 +145,7 @@ func (st *Store) DriverName(db *sql.DB) string {
 
 // EnableDebug - enables the debug option
 func (st *Store) EnableDebug(debug bool) {
-	st.debug = debug
+	st.debugEnabled = debug
 }
 
 // FindByID finds a user by ID
@@ -142,7 +154,7 @@ func (st *Store) FindByID(id string) *Vault {
 	var sqlStr string
 	sqlStr, _, _ = goqu.Dialect(st.dbDriverName).From(st.vaultTableName).Where(goqu.Ex{"id": id}).Limit(1).ToSQL()
 
-	if st.debug {
+	if st.debugEnabled {
 		log.Println(sqlStr)
 	}
 
@@ -176,9 +188,13 @@ func (st *Store) FindByID(id string) *Vault {
 
 // ValueDelete removes all keys from the sessiom
 func (st *Store) ValueDelete(id string) error {
-	sqlStr, _, _ := goqu.Dialect(st.dbDriverName).From(st.vaultTableName).Where(goqu.C("id").Eq(id), goqu.C("deleted_at").IsNull()).Delete().ToSQL()
+	sqlStr, _, _ := goqu.Dialect(st.dbDriverName).
+		From(st.vaultTableName).
+		Where(goqu.C("id").Eq(id), goqu.C("deleted_at").IsNull()).
+		Delete().
+		ToSQL()
 
-	if st.debug {
+	if st.debugEnabled {
 		log.Println(sqlStr)
 	}
 
@@ -224,13 +240,14 @@ func (st *Store) ValueStore(value string, password string) (id string, err error
 
 	var sqlStr string
 	sqlStr, _, _ = goqu.Dialect(st.dbDriverName).Insert(st.vaultTableName).Rows(newEntry).ToSQL()
-	if st.debug {
+	
+	if st.debugEnabled {
 		log.Println(sqlStr)
 	}
 
 	_, err = st.db.Exec(sqlStr)
 	if err != nil {
-		if st.debug {
+		if st.debugEnabled {
 			log.Println(err.Error())
 		}
 		return "", err
