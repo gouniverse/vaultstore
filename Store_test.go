@@ -52,220 +52,227 @@ func TestWithAutoMigrate(t *testing.T) {
 	}
 }
 
-// func TestWithDb(t *testing.T) {
-// 	s := Store{
-// 		vaultTableName:     "vault",
-// 		db:                 nil,
-// 		automigrateEnabled: true,
-// 	}
+func Test_Store_AutoMigrate(t *testing.T) {
+	db := InitDB("test_vaultstore_automigrate")
 
-// 	db := InitDB("test_vaultstore_with_db")
-// 	f := WithDb(db)
-// 	f(&s)
+	store, err := NewStore(NewStoreOptions{
+		VaultTableName:     "vault_automigrate",
+		DB:                 db,
+		AutomigrateEnabled: false,
+	})
 
-// 	if s.db == nil {
-// 		t.Fatalf("DB: Expected Initialized DB, received [%v]", s.db)
-// 	}
+	if err != nil {
+		t.Fatalf("automigrateEnabled: Expected [err] to be nill received [%v]", err.Error())
+	}
 
-// }
+	if store.automigrateEnabled != false {
+		t.Fatalf("automigrateEnabled: Expected [false] received [%v]", store.automigrateEnabled)
+	}
 
-// func TestWithTableName(t *testing.T) {
-// 	s := Store{
-// 		vaultTableName:     "",
-// 		db:                 nil,
-// 		automigrateEnabled: false,
-// 	}
-// 	table_name := "Table1"
-// 	f := WithTableName(table_name)
-// 	f(&s)
-// 	if s.vaultTableName != table_name {
-// 		t.Fatalf("Expected vaultTableName [%v], received [%v]", table_name, s.vaultTableName)
-// 	}
-// 	table_name = "Table2"
-// 	f = WithTableName(table_name)
-// 	f(&s)
-// 	if s.vaultTableName != table_name {
-// 		t.Fatalf("Expected vaultTableName [%v], received [%v]", table_name, s.vaultTableName)
-// 	}
-// }
+	store.AutoMigrate()
 
-// func Test_Store_AutoMigrate(t *testing.T) {
-// 	db := InitDB("test_vaultstore_automigrate.db")
+	if store.vaultTableName != "vault_automigrate" {
+		t.Fatalf("Expected vaultTableName [vault_automigrate] received [%v]", store.vaultTableName)
+	}
+	if store.db == nil {
+		t.Fatalf("DB Init Failure")
+	}
+	if store.automigrateEnabled != false {
+		t.Fatalf("Failure:  AutoMigrate")
+	}
+}
 
-// 	s, _ := NewStore(WithDb(db), WithTableName("vault_automigrate"), WithAutoMigrate(true))
+func Test_Store_ValueStore(t *testing.T) {
+	db := InitDB("test_vaultstore_valuestore.db")
+	store, err := NewStore(NewStoreOptions{
+		VaultTableName:     "vault_store",
+		DB:                 db,
+		AutomigrateEnabled: true,
+	})
 
-// 	s.AutoMigrate()
+	if err != nil {
+		t.Fatalf("value store: Expected [err] to be nil received [%v]", err.Error())
+	}
 
-// 	if s.vaultTableName != "vault_automigrate" {
-// 		t.Fatalf("Expected vaultTableName [vault_automigrate] received [%v]", s.vaultTableName)
-// 	}
-// 	if s.db == nil {
-// 		t.Fatalf("DB Init Failure")
-// 	}
-// 	if s.automigrateEnabled != true {
-// 		t.Fatalf("Failure:  AutoMigrate")
-// 	}
-// }
+	id, err := store.ValueStore("test_val", "test_pass")
 
-// func Test_Store_ValueStore(t *testing.T) {
-// 	db := InitDB("test_vaultstore_valuestore.db")
-// 	s, err := NewStore(WithDb(db), WithTableName("vault_store"), WithAutoMigrate(true))
-// 	_, err = s.ValueStore("test_val", "test_pass")
-// 	if err != nil {
-// 		t.Fatalf("ValueStore Failure: [%v]", err.Error())
-// 	}
-// }
+	if err != nil {
+		t.Fatalf("ValueStore Failure: [%v]", err.Error())
+	}
 
-// func Test_Store_ValueRetrieve(t *testing.T) {
-// 	db := InitDB("test_vaultstore_valueretrieve.db")
-// 	s, err := NewStore(WithDb(db), WithTableName("vault_retrieve"), WithAutoMigrate(true))
-// 	id, err := s.ValueStore("test_val", "test_pass")
-// 	if err != nil {
-// 		t.Fatalf("ValueStore Failure: [%v]", err.Error())
-// 	}
+	if id == "" {
+		t.Fatal("ID expected to not be empty")
+	}
+}
 
-// 	val, err := s.ValueRetrieve(id, "test_pass")
-// 	if err != nil {
-// 		t.Fatalf("ValueRetrieve Failure: [%v]", err.Error())
-// 	}
+func Test_Store_ValueRetrieve(t *testing.T) {
+	db := InitDB("test_vaultstore_valueretrieve.db")
+	store, err := NewStore(NewStoreOptions{
+		VaultTableName:     "vault_retrieve",
+		DB:                 db,
+		AutomigrateEnabled: true,
+	})
 
-// 	if val != "test_val" {
-// 		t.Fatalf("ValueRetrieve Incorrect val [%v]", val)
-// 	}
-// }
+	if err != nil {
+		t.Fatalf("value store: Expected [err] to be nil received [%v]", err.Error())
+	}
 
-// func Test_Store_ValueDelete(t *testing.T) {
-// 	db := InitDB("test_vaultstore_valuedelete.db")
-// 	s, err := NewStore(WithDb(db), WithTableName("vault_delete"), WithAutoMigrate(true))
+	id, err := store.ValueStore("test_val", "test_pass")
 
-// 	id, err := s.ValueStore("test_val", "test_pass")
-// 	if err != nil {
-// 		t.Fatalf("ValueStore Failure: [%v]", err.Error())
-// 	}
+	if err != nil {
+		t.Fatalf("ValueStore Failure: [%v]", err.Error())
+	}
 
-// 	errDelete := s.ValueDelete(id)
-// 	if errDelete != nil {
-// 		t.Fatalf("ValueDelete Failed: " + errDelete.Error())
-// 	}
+	val, err := store.ValueRetrieve(id, "test_pass")
+	if err != nil {
+		t.Fatalf("ValueRetrieve Failure: [%v]", err.Error())
+	}
 
-// }
+	if val != "test_val" {
+		t.Fatalf("ValueRetrieve Incorrect val [%v]", val)
+	}
+}
 
-// func Test_decode(t *testing.T) {
-// 	test_val := "test_value"
-// 	test_pass := "test_password"
-// 	encoded_str := encode(test_val, test_pass)
+func Test_Store_ValueDelete(t *testing.T) {
+	db := InitDB("test_vaultstore_valuedelete.db")
+	store, err := NewStore(NewStoreOptions{
+		VaultTableName:     "vault_retrieve",
+		DB:                 db,
+		AutomigrateEnabled: true,
+	})
 
-// 	str, err := decode(encoded_str, test_pass)
-// 	if err != nil {
-// 		t.Fatalf("decode Failure [%v]", err.Error())
-// 	}
-// 	if str != test_val {
-// 		t.Fatalf("decoded String Match Failure: Expected [%v], received [%v]", test_val, str)
-// 	}
-// }
+	if err != nil {
+		t.Fatalf("Test_Store_ValueDelete: Expected [err] to be nil received [%v]", err.Error())
+	}
 
-// func Test_encode(t *testing.T) {
-// 	test_val := "test_value"
-// 	test_pass := "test_password"
-// 	encoded_str := encode(test_val, test_pass)
+	id, err := store.ValueStore("test_val", "test_pass")
+	if err != nil {
+		t.Fatalf("ValueStore Failure: [%v]", err.Error())
+	}
 
-// 	str, err := decode(encoded_str, test_pass)
-// 	if err != nil {
-// 		t.Fatalf("encode Failure [%v]", err.Error())
-// 	}
-// 	if str != test_val {
-// 		t.Fatalf("encoded String Match Failure: Expected [%v], received [%v]", test_val, str)
-// 	}
+	errDelete := store.ValueDelete(id)
+	if errDelete != nil {
+		t.Fatalf("ValueDelete Failed: " + errDelete.Error())
+	}
 
-// }
+}
 
-// func Test_createRandomBlock(t *testing.T) {
-// 	s := createRandomBlock(10)
-// 	if len(s) != 10 {
-// 		t.Fatalf("createRandomBlock Error")
-// 	}
+func Test_decode(t *testing.T) {
+	test_val := "test_value"
+	test_pass := "test_password"
+	encoded_str := encode(test_val, test_pass)
 
-// 	s = createRandomBlock(50)
-// 	if len(s) != 50 {
-// 		t.Fatalf("createRandomBlock Error")
-// 	}
-// }
+	str, err := decode(encoded_str, test_pass)
+	if err != nil {
+		t.Fatalf("decode Failure [%v]", err.Error())
+	}
+	if str != test_val {
+		t.Fatalf("decoded String Match Failure: Expected [%v], received [%v]", test_val, str)
+	}
+}
 
-// func Test_calculateRequiredBlockLength(t *testing.T) {
-// 	i := calculateRequiredBlockLength(1000)
-// 	if i != 1024 {
-// 		t.Fatalf("calculateRequiredBlockLength Error")
-// 	}
-// }
+func Test_encode(t *testing.T) {
+	test_val := "test_value"
+	test_pass := "test_password"
+	encoded_str := encode(test_val, test_pass)
 
-// func Test_base64Encode(t *testing.T) {
-// 	str := "testing"
-// 	s := base64Encode([]byte(str))
-// 	if len(s) == 0 {
-// 		t.Fatalf("base64Encode Failure")
-// 	}
-// }
+	str, err := decode(encoded_str, test_pass)
+	if err != nil {
+		t.Fatalf("encode Failure [%v]", err.Error())
+	}
+	if str != test_val {
+		t.Fatalf("encoded String Match Failure: Expected [%v], received [%v]", test_val, str)
+	}
 
-// func Test_base64Decode(t *testing.T) {
-// 	str := "testing"
-// 	s := base64Encode([]byte(str))
-// 	data, err := base64Decode(s)
-// 	if err != nil {
-// 		t.Fatalf("base64Decode Failure: err[%v]", err.Error())
-// 	}
-// 	if str != string(data) {
-// 		t.Fatalf("base64Decode Failure")
-// 	}
-// }
+}
 
-// func Test_xorEncrypt(t *testing.T) {
-// 	str := xorEncrypt("input", "key")
-// 	if len(str) == 0 {
-// 		t.Fatalf("xorEncrypt Failure")
-// 	}
-// }
+func Test_createRandomBlock(t *testing.T) {
+	s := createRandomBlock(10)
+	if len(s) != 10 {
+		t.Fatalf("createRandomBlock Error")
+	}
 
-// func Test_xorDecrypt(t *testing.T) {
-// 	str := xorEncrypt("input", "key")
-// 	out, err := xorDecrypt(str, "key")
-// 	if err != nil {
-// 		t.Fatalf("xorDecrypt Failure")
-// 	}
-// 	if out != "input" {
-// 		t.Fatalf("xorDecrypt Failure: Expected [input] Received [%v]", out)
-// 	}
-// }
+	s = createRandomBlock(50)
+	if len(s) != 50 {
+		t.Fatalf("createRandomBlock Error")
+	}
+}
 
-// func Test_strToMD5Hash(t *testing.T) {
-// 	ret := strToMD5Hash("testing")
-// 	if len(ret) == 0 {
-// 		t.Fatalf("strToMD5Hash Failure")
-// 	}
-// }
+func Test_calculateRequiredBlockLength(t *testing.T) {
+	i := calculateRequiredBlockLength(1000)
+	if i != 1024 {
+		t.Fatalf("calculateRequiredBlockLength Error")
+	}
+}
 
-// func Test_strToSHA1Hash(t *testing.T) {
-// 	ret := strToSHA1Hash("testing")
-// 	if len(ret) == 0 {
-// 		t.Fatalf("strToSHA1Hash Failure")
-// 	}
-// }
+func Test_base64Encode(t *testing.T) {
+	str := "testing"
+	s := base64Encode([]byte(str))
+	if len(s) == 0 {
+		t.Fatalf("base64Encode Failure")
+	}
+}
 
-// func Test_strToSHA256Hash(t *testing.T) {
-// 	ret := strToSHA256Hash("testing")
-// 	if len(ret) == 0 {
-// 		t.Fatalf("strToSHA256Hash Failure")
-// 	}
-// }
+func Test_base64Decode(t *testing.T) {
+	str := "testing"
+	s := base64Encode([]byte(str))
+	data, err := base64Decode(s)
+	if err != nil {
+		t.Fatalf("base64Decode Failure: err[%v]", err.Error())
+	}
+	if str != string(data) {
+		t.Fatalf("base64Decode Failure")
+	}
+}
 
-// func Test_isBase64(t *testing.T) {
-// 	// Base64 of Hello -> SGVsbG8=
-// 	ret := isBase64("SGVsbG8=")
-// 	if !ret {
-// 		t.Fatalf("isBase64 should ret TRUE, Failure")
-// 	}
+func Test_xorEncrypt(t *testing.T) {
+	str := xorEncrypt("input", "key")
+	if len(str) == 0 {
+		t.Fatalf("xorEncrypt Failure")
+	}
+}
 
-// 	ret = isBase64("Hello")
-// 	if ret {
-// 		t.Fatalf("isBase64 should ret FALSE, Failure")
-// 	}
-// }
+func Test_xorDecrypt(t *testing.T) {
+	str := xorEncrypt("input", "key")
+	out, err := xorDecrypt(str, "key")
+	if err != nil {
+		t.Fatalf("xorDecrypt Failure")
+	}
+	if out != "input" {
+		t.Fatalf("xorDecrypt Failure: Expected [input] Received [%v]", out)
+	}
+}
+
+func Test_strToMD5Hash(t *testing.T) {
+	ret := strToMD5Hash("testing")
+	if len(ret) == 0 {
+		t.Fatalf("strToMD5Hash Failure")
+	}
+}
+
+func Test_strToSHA1Hash(t *testing.T) {
+	ret := strToSHA1Hash("testing")
+	if len(ret) == 0 {
+		t.Fatalf("strToSHA1Hash Failure")
+	}
+}
+
+func Test_strToSHA256Hash(t *testing.T) {
+	ret := strToSHA256Hash("testing")
+	if len(ret) == 0 {
+		t.Fatalf("strToSHA256Hash Failure")
+	}
+}
+
+func Test_isBase64(t *testing.T) {
+	// Base64 of Hello -> SGVsbG8=
+	ret := isBase64("SGVsbG8=")
+	if !ret {
+		t.Fatalf("isBase64 should ret TRUE, Failure")
+	}
+
+	ret = isBase64("Hello")
+	if ret {
+		t.Fatalf("isBase64 should ret FALSE, Failure")
+	}
+}
