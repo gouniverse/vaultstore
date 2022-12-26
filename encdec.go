@@ -13,7 +13,7 @@ func decode(value string, password string) (string, error) {
 	first, err := xorDecrypt(value, strongPassword)
 
 	if err != nil {
-		return "", errors.New("XOR. " + err.Error())
+		return "", errors.New("xor. " + err.Error())
 	}
 
 	if !isBase64(first) {
@@ -23,7 +23,7 @@ func decode(value string, password string) (string, error) {
 	v4, err := base64Decode(first)
 
 	if err != nil {
-		return "", errors.New("Base64. " + err.Error())
+		return "", errors.New("base64. " + err.Error())
 	}
 
 	a := strings.Split(string(v4), "_")

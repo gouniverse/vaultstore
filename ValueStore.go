@@ -1,18 +1,18 @@
 package vaultstore
 
 import (
-	"fmt"
 	"log"
 	"time"
 
 	"github.com/doug-martin/goqu/v9"
+	"github.com/gouniverse/uid"
 )
 
 // ValueStore creates a new vault entry and returns the ID
 func (st *Store) ValueStore(value string, password string) (id string, err error) {
 	encoded := encode(value, password)
 	var newEntry = Vault{
-		ID:        fmt.Sprintf("%v", time.Now().UnixNano()),
+		ID:        uid.HumanUid(),
 		Value:     encoded,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),

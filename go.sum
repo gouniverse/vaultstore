@@ -30,6 +30,8 @@ github.com/golang/protobuf v1.3.1/go.mod h1:6lQm79b+lXiMfvg/cZm0SGofjICqVBUtrP5y
 github.com/google/renameio v0.1.0/go.mod h1:KWCgfxg9yswjAJkECMjeO8J8rahYeXnNhOm40UhjYkI=
 github.com/gouniverse/uid v1.3.0 h1:kb1x3LfVqWq/9J8DzA4RXI977lrMin0gVhweYSb8p80=
 github.com/gouniverse/uid v1.3.0/go.mod h1:YKsoFDjOj3GUJIL7KeMK0GzGsg7Klk3Sghn+aIotv2k=
+github.com/gouniverse/uid v1.4.0 h1:nb79pouX6+McNCuhVklhircWM8e+bG1VaOD/pTUb9ec=
+github.com/gouniverse/uid v1.4.0/go.mod h1:YKsoFDjOj3GUJIL7KeMK0GzGsg7Klk3Sghn+aIotv2k=
 github.com/jackc/chunkreader v1.0.0/go.mod h1:RT6O25fNZIuasFJRyZ4R/Y2BbhasbmZXF9QQ7T3kePo=
 github.com/jackc/chunkreader/v2 v2.0.0/go.mod h1:odVSm741yZoC3dpHEUXIqA9tQRhFrgOHwnPIn9lDKlk=
 github.com/jackc/chunkreader/v2 v2.0.1/go.mod h1:odVSm741yZoC3dpHEUXIqA9tQRhFrgOHwnPIn9lDKlk=
