@@ -25,12 +25,12 @@ The following schema is used for the database.
 
 ## Setup
 
-```
-vaultStore, err := NewStore(NewStoreOptions{
-		VaultTableName:     "my_vault",
-		DB:                 databaseInstance,
-		AutomigrateEnabled: true,
-	})
+```golang
+vault, err := NewStore(NewStoreOptions{
+	VaultTableName:     "my_vault",
+	DB:                 databaseInstance,
+	AutomigrateEnabled: true,
+})
 
 ```
 
@@ -39,7 +39,7 @@ vaultStore, err := NewStore(NewStoreOptions{
 - Stores a value to the vault and return the ID
 
 ```golang
-id, err = s.ValueStore("my_value", "my_password")
+id, err = vault.ValueStore("my_value", "my_password")
 
 if err != nil {
   t.Fatalf("Store Failure: [%v]", err.Error())
@@ -49,7 +49,7 @@ if err != nil {
 - Retrieve a value from vault by ID
 
 ```golang
-val, err := s.ValueRetrieve(id, "test_pass")
+val, err := vault.ValueRetrieve(id, "test_pass")
 
 if err != nil {
   t.Fatalf("Retrieve Failure: [%v]", err.Error())
@@ -58,7 +58,7 @@ if err != nil {
 - Delete a value from vault by ID
 
 ```golang
-err := s.ValueDelete(id)
+err := vault.ValueDelete(id)
 if err != nil {
   t.Fatalf("Delete Failed: " + errDelete.Error())
 }
