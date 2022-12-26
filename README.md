@@ -37,7 +37,8 @@ vaultStore, err := NewStore(NewStoreOptions{
 ## Usage
 
 - Stores a value to the vault and return the ID
-```
+
+```golang
 id, err = s.ValueStore("my_value", "my_password")
 
 if err != nil {
@@ -46,7 +47,8 @@ if err != nil {
 ```
 
 - Retrieve a value from vault by ID
-```
+
+```golang
 val, err := s.ValueRetrieve(id, "test_pass")
 
 if err != nil {
@@ -54,7 +56,8 @@ if err != nil {
 }
 
 - Delete a value from vault by ID
-```
+
+```golang
 err := s.ValueDelete(id)
 if err != nil {
   t.Fatalf("Delete Failed: " + errDelete.Error())
@@ -62,6 +65,8 @@ if err != nil {
 ```
 
 ## Changelog
+
+2022.12.26 - Updated ID to Human Friendly UUID
 
 2021.12.12 - Added tests badge
 
