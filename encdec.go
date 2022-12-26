@@ -23,7 +23,7 @@ func decode(value string, password string) (string, error) {
 	v4, err := base64Decode(first)
 
 	if err != nil {
-		return "", errors.New("base64. " + err.Error())
+		return "", errors.New("base64.1. " + err.Error())
 	}
 
 	a := strings.Split(string(v4), "_")
@@ -35,14 +35,14 @@ func decode(value string, password string) (string, error) {
 	upTo, err := strconv.Atoi(a[0])
 
 	if err != nil {
-		return "", errors.New("ATOI. " + err.Error())
+		return "", errors.New("atoi. " + err.Error())
 	}
 
 	v1 := a[1][0:upTo]
 
 	v2, err := base64Decode(v1)
 	if err != nil {
-		return "", errors.New("Base64.2. " + err.Error())
+		return "", errors.New("base64.2. " + err.Error())
 	}
 
 	return string(v2), nil
