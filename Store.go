@@ -21,7 +21,7 @@ type Store struct {
 }
 
 // AutoMigrate auto migrate
-func (st *Store) AutoMigrate() {
+func (st *Store) AutoMigrate() error {
 	sql := st.SqlCreateTable()
 
 	if st.debugEnabled {
@@ -32,8 +32,10 @@ func (st *Store) AutoMigrate() {
 
 	if err != nil {
 		log.Println(err)
-		return
+		return err
 	}
+
+	return nil
 }
 
 // EnableDebug - enables the debug option
