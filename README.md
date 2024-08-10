@@ -54,6 +54,7 @@ val, err := vault.ValueRetrieve(id, "test_pass")
 if err != nil {
   t.Fatalf("Retrieve Failure: [%v]", err.Error())
 }
+```
 
 - Delete a value from vault by ID
 
