@@ -40,7 +40,7 @@ vault, err := NewStore(NewStoreOptions{
 - Stores a value to the vault and returns a token
 
 ```golang
-token, err = vault.TokenCreate("my_value", "my_password")
+token, err = vault.TokenCreate("my_value", "my_password", 20)
 
 if err != nil {
   t.Fatalf("Store Failure: [%v]", err.Error())

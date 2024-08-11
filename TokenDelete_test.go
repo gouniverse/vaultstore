@@ -14,7 +14,7 @@ func Test_Store_TokenDelete(t *testing.T) {
 		t.Fatalf("Test_Store_ValueDelete: Expected [err] to be nil received [%v]", err.Error())
 	}
 
-	token, err := store.TokenCreate("test_val", "test_pass")
+	token, err := store.TokenCreate("test_val", "test_pass", 20)
 	if err != nil {
 		t.Fatalf("ValueStore Failure: [%v]", err.Error())
 	}

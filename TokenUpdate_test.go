@@ -15,7 +15,7 @@ func Test_Store_TokenUpdate(t *testing.T) {
 		t.Fatalf("vault store: Expected [err] to be nil received [%v]", err.Error())
 	}
 
-	token, err := store.TokenCreate("test_val", "test_pass")
+	token, err := store.TokenCreate("test_val", "test_pass", 20)
 
 	if err != nil {
 		t.Fatal("TokenCreate Failure: ", err.Error())

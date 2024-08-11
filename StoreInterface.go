@@ -8,7 +8,8 @@ type StoreInterface interface {
 	RecordUpdate(Record) error
 	RecordDeleteByID(recordID string) error
 
-	TokenCreate(value string, password string) (token string, err error)
+	TokenCreate(value string, password string, tokenLength int) (token string, err error)
+	TokenCreateCustom(token string, value string, password string) (err error)
 	TokenDelete(token string) error
 	TokenRead(token string, password string) (string, error)
 	//ValueFindByID(id string) (*SearchValue, error)

@@ -5,8 +5,8 @@ import (
 )
 
 // TokenCreate creates a new record and returns the token
-func (st *Store) TokenCreate(data string, password string) (token string, err error) {
-	token, err = GenerateToken()
+func (st *Store) TokenCreate(data string, password string, tokenLength int) (token string, err error) {
+	token, err = generateToken(tokenLength)
 
 	if err != nil {
 		return "", err

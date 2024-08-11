@@ -14,7 +14,7 @@ func Test_Store_TokenRead(t *testing.T) {
 		t.Fatalf("vault store: Expected [err] to be nil received [%v]", err.Error())
 	}
 
-	id, err := store.TokenCreate("test_val", "test_pass")
+	id, err := store.TokenCreate("test_val", "test_pass", 20)
 
 	if err != nil {
 		t.Fatal("ValueStore Failure: ", err.Error())

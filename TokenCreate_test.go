@@ -18,7 +18,7 @@ func Test_Store_TokenCreate(t *testing.T) {
 		t.Fatalf("value store: Expected [err] to be nil received [%v]", err.Error())
 	}
 
-	token, err := store.TokenCreate("test_val", "test_pass")
+	token, err := store.TokenCreate("test_val", "test_pass", 20)
 
 	if err != nil {
 		t.Fatalf("ValueStore Failure: [%v]", err.Error())
@@ -30,5 +30,9 @@ func Test_Store_TokenCreate(t *testing.T) {
 
 	if strings.HasPrefix(token, "tk_") == false {
 		t.Fatal("Token expected to start with 'tk_' received: ", token)
+	}
+
+	if len(token) != 20 {
+		t.Fatal("Token length expected to be 20 received: ", len(token), " token: ", token)
 	}
 }
