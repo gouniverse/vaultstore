@@ -20,6 +20,8 @@ type Store struct {
 	debugEnabled       bool
 }
 
+var _ StoreInterface = (*Store)(nil) // verify it extends the interface
+
 // AutoMigrate auto migrate
 func (st *Store) AutoMigrate() error {
 	sql := st.SqlCreateTable()

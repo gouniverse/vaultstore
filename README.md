@@ -18,6 +18,7 @@ The following schema is used for the database.
 | vault       |                  |
 |-------------|------------------|
 | id          | String, UniqueId |
+| vault_token | Long Text, Unique|
 | vault_value | Long Text        |
 | created_At  | DateTime         |
 | updated_at  | DateTime         |
@@ -36,36 +37,38 @@ vault, err := NewStore(NewStoreOptions{
 
 ## Usage
 
-- Stores a value to the vault and return the ID
+- Stores a value to the vault and returns a token
 
 ```golang
-id, err = vault.ValueStore("my_value", "my_password")
+token, err = vault.TokenCreate("my_value", "my_password")
 
 if err != nil {
   t.Fatalf("Store Failure: [%v]", err.Error())
 }
 ```
 
-- Retrieve a value from vault by ID
+- Retrieve a value from vault by its token
 
 ```golang
-val, err := vault.ValueRetrieve(id, "test_pass")
+val, err := vault.TokenRead(token, "test_pass")
 
 if err != nil {
   t.Fatalf("Retrieve Failure: [%v]", err.Error())
 }
 ```
 
-- Delete a value from vault by ID
+- Delete a value from the vault by its token
 
 ```golang
-err := vault.ValueDelete(id)
+err := vault.TokenDelete(token)
 if err != nil {
   t.Fatalf("Delete Failed: " + errDelete.Error())
 }
 ```
 
 ## Changelog
+
+2024.08.11 - Added token support, to allow (tokenization). More info at: https://en.wikipedia.org/wiki/Tokenization_(data_security)
 
 2022.12.26 - Updated ID to Human Friendly UUID
 
