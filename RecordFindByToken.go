@@ -1,7 +1,13 @@
 package vaultstore
 
+import "errors"
+
 // RecordFindByToken finds a store record by token
 func (st *Store) RecordFindByToken(token string) (*Record, error) {
+	if token == "" {
+		return nil, errors.New("token is empty")
+	}
+
 	records, err := st.RecordList(RecordQueryOptions{
 		Token: token,
 	})

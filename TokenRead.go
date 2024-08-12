@@ -4,9 +4,9 @@ import "errors"
 
 // ValueRetrieve retrieves a value of a vault entry
 func (st *Store) TokenRead(token string, password string) (value string, err error) {
-	entry, errFind := st.RecordFindByToken(token)
+	entry, err := st.RecordFindByToken(token)
 
-	if errFind != nil {
+	if err != nil {
 		return "", err
 	}
 

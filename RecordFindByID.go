@@ -1,6 +1,7 @@
 package vaultstore
 
 import (
+	"errors"
 	"log"
 
 	"github.com/doug-martin/goqu/v9"
@@ -10,6 +11,9 @@ import (
 
 // FindByID finds an entry by ID
 func (st *Store) RecordFindByID(id string) (*Record, error) {
+	if id == "" {
+		return nil, errors.New("record id is empty")
+	}
 
 	sqlStr, _, errSql := goqu.Dialect(st.dbDriverName).
 		From(st.vaultTableName).
