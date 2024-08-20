@@ -43,17 +43,31 @@ vault, err := NewStore(NewStoreOptions{
 token, err = vault.TokenCreate("my_value", "my_password", 20)
 
 if err != nil {
-  t.Fatalf("Store Failure: [%v]", err.Error())
+  print("Create Failure: " + err.Error())
 }
 ```
 
-- Retrieve a value from vault by its token
+- Check a token exists
+
+```golang
+exists, err := vault.TokenExists(token)
+
+if err != nil {
+  print("Delete Failed: " + errDelete.Error())
+}
+
+if (!exists) {
+    print("token does not exist")
+}
+```
+
+- Retrieve a value from the vault by its token
 
 ```golang
 val, err := vault.TokenRead(token, "test_pass")
 
 if err != nil {
-  t.Fatalf("Retrieve Failure: [%v]", err.Error())
+  print("Read failed:" + err.Error())
 }
 ```
 
@@ -62,7 +76,7 @@ if err != nil {
 ```golang
 err := vault.TokenDelete(token)
 if err != nil {
-  t.Fatalf("Delete Failed: " + errDelete.Error())
+  print("Delete failed: " + err.Error())
 }
 ```
 
