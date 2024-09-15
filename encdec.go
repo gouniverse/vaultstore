@@ -2,10 +2,9 @@ package vaultstore
 
 import (
 	"errors"
-	"math/rand"
+	"math/rand/v2"
 	"strconv"
 	"strings"
-	"time"
 )
 
 func decode(value string, password string) (string, error) {
@@ -53,7 +52,7 @@ func encode(value string, password string) string {
 	v1 := base64Encode([]byte(value))
 	v2 := strconv.Itoa(len(v1)) + "_" + v1
 	randomBlock := createRandomBlock(calculateRequiredBlockLength(len(v2)))
-	v3 := v2 + "" + randomBlock[len(v2):len(randomBlock)]
+	v3 := v2 + "" + randomBlock[len(v2):]
 	v4 := base64Encode([]byte(v3))
 	last := xorEncrypt(v4, strongPassword)
 	return last
@@ -76,12 +75,12 @@ func strongifyPassword(password string) string {
 
 // createRandomBlock returns a random string of specified length
 func createRandomBlock(length int) string {
-	rand.Seed(time.Now().UnixNano())
+	//rand.Seed(time.Now().UnixNano())
 	characters := "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	charactersLength := len(characters)
 	randomString := ""
 	for i := 0; i < length; i++ {
-		randomString += string(characters[rand.Intn(charactersLength-1)])
+		randomString += string(characters[rand.IntN(charactersLength-1)])
 	}
 	return randomString
 }
