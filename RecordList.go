@@ -26,7 +26,7 @@ type RecordQueryOptions struct {
 func (store *Store) RecordList(options RecordQueryOptions) ([]Record, error) {
 	q := store.recordQuery(options)
 
-	sqlStr, _, errSql := q.Select().ToSQL()
+	sqlStr, sqlParams, errSql := q.Select().Prepared(true).ToSQL()
 
 	if errSql != nil {
 		return []Record{}, nil
@@ -37,7 +37,7 @@ func (store *Store) RecordList(options RecordQueryOptions) ([]Record, error) {
 	}
 
 	db := sb.NewDatabase(store.db, store.dbDriverName)
-	modelMaps, err := db.SelectToMapString(sqlStr)
+	modelMaps, err := db.SelectToMapString(sqlStr, sqlParams...)
 	if err != nil {
 		return []Record{}, err
 	}
