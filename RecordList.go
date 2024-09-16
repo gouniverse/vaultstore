@@ -63,6 +63,14 @@ func (store *Store) recordQuery(options RecordQueryOptions) *goqu.SelectDataset 
 		q = q.Where(goqu.C(COLUMN_VAULT_TOKEN).Eq(options.Token))
 	}
 
+	if len(options.IDIn) > 0 {
+		q = q.Where(goqu.C(COLUMN_ID).In(options.IDIn))
+	}
+
+	if len(options.TokenIn) > 0 {
+		q = q.Where(goqu.C(COLUMN_VAULT_TOKEN).In(options.TokenIn))
+	}
+
 	if !options.CountOnly {
 		if options.Limit > 0 {
 			q = q.Limit(uint(options.Limit))
