@@ -25,19 +25,21 @@ func decode(value string, password string) (string, error) {
 		return "", errors.New("base64.1. " + err.Error())
 	}
 
-	a := strings.Split(string(v4), "_")
+	parts := strings.Split(string(v4), "_")
 
-	if len(a) < 2 {
+	if len(parts) < 2 {
 		return "", errors.New("vault password incorrect")
 	}
 
-	upTo, err := strconv.Atoi(a[0])
+	upTo, err := strconv.Atoi(parts[0])
 
 	if err != nil {
 		return "", errors.New("atoi. " + err.Error())
 	}
 
-	v1 := a[1][0:upTo]
+	after := strings.Join(parts[1:], "_")
+
+	v1 := after[0:upTo]
 
 	v2, err := base64Decode(v1)
 	if err != nil {
