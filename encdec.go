@@ -75,14 +75,12 @@ func strongifyPassword(password string) string {
 
 // createRandomBlock returns a random string of specified length
 func createRandomBlock(length int) string {
-	//rand.Seed(time.Now().UnixNano())
-	characters := "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	charactersLength := len(characters)
-	randomString := ""
-	for i := 0; i < length; i++ {
-		randomString += string(characters[rand.IntN(charactersLength-1)])
+	const characters = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	result := make([]byte, length)
+	for i := range result {
+		result[i] = characters[rand.IntN(len(characters))]
 	}
-	return randomString
+	return string(result)
 }
 
 // calculateRequiredBlockLength calculates block length (128) required to contain a length

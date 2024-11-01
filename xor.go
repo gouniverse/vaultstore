@@ -2,11 +2,16 @@ package vaultstore
 
 // xorEncrypt  runs a XOR encryption on the input string
 func xorEncrypt(input, key string) (output string) {
-	for i := 0; i < len(input); i++ {
-		output += string(input[i] ^ key[i%len(key)])
+	inputBytes := []byte(input)
+	keyBytes := []byte(key)
+	keyLen := len(keyBytes)
+
+	outputBytes := make([]byte, len(inputBytes))
+	for i := range inputBytes {
+		outputBytes[i] = inputBytes[i] ^ keyBytes[i%keyLen]
 	}
 
-	return base64Encode([]byte(output))
+	return base64Encode(outputBytes)
 }
 
 // xorDecrypt  runs a XOR encryption on the input string
@@ -17,11 +22,10 @@ func xorDecrypt(encstring string, key string) (output string, err error) {
 		return "", err
 	}
 
-	input := string(inputBytes)
-
-	for i := 0; i < len(input); i++ {
-		output += string(input[i] ^ key[i%len(key)])
+	outputBytes := make([]byte, len(inputBytes))
+	for i, b := range inputBytes {
+		outputBytes[i] = b ^ key[i%len(key)]
 	}
 
-	return output, nil
+	return string(outputBytes), nil
 }
