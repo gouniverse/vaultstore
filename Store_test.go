@@ -150,24 +150,6 @@ func Test_base64Decode(t *testing.T) {
 	}
 }
 
-func Test_xorEncrypt(t *testing.T) {
-	str := xorEncrypt("input", "key")
-	if len(str) == 0 {
-		t.Fatalf("xorEncrypt Failure")
-	}
-}
-
-func Test_xorDecrypt(t *testing.T) {
-	str := xorEncrypt("input", "key")
-	out, err := xorDecrypt(str, "key")
-	if err != nil {
-		t.Fatalf("xorDecrypt Failure")
-	}
-	if out != "input" {
-		t.Fatalf("xorDecrypt Failure: Expected [input] Received [%v]", out)
-	}
-}
-
 func Test_strToMD5Hash(t *testing.T) {
 	ret := strToMD5Hash("testing")
 	if len(ret) == 0 {
