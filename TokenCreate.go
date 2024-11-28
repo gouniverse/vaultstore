@@ -1,7 +1,7 @@
 package vaultstore
 
 import (
-	"github.com/golang-module/carbon/v2"
+	"github.com/dromara/carbon/v2"
 )
 
 // TokenCreate creates a new record and returns the token

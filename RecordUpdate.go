@@ -4,7 +4,7 @@ import (
 	"log"
 
 	"github.com/doug-martin/goqu/v9"
-	"github.com/golang-module/carbon/v2"
+	"github.com/dromara/carbon/v2"
 )
 
 func (store *Store) RecordUpdate(record Record) error {

@@ -1,6 +1,6 @@
 package vaultstore
 
-import "github.com/golang-module/carbon/v2"
+import "github.com/dromara/carbon/v2"
 
 func (store *Store) TokenCreateCustom(token string, data string, password string) (err error) {
 	encodedData := encode(data, password)
