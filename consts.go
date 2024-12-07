@@ -6,3 +6,5 @@ const COLUMN_ID = "id"
 const COLUMN_UPDATED_AT = "updated_at"
 const COLUMN_VAULT_TOKEN = "vault_token"
 const COLUMN_VAULT_VALUE = "vault_value"
+
+const TOKEN_PREFIX = "tk_"

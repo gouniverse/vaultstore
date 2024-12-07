@@ -1,6 +1,7 @@
 package vaultstore
 
 import (
+	"context"
 	"log"
 
 	"database/sql"
@@ -9,6 +10,7 @@ import (
 	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
 	_ "github.com/doug-martin/goqu/v9/dialect/sqlite3"
 	_ "github.com/doug-martin/goqu/v9/dialect/sqlserver"
+	"github.com/gouniverse/base/database"
 )
 
 // Store defines a session store
@@ -43,4 +45,12 @@ func (st *Store) AutoMigrate() error {
 // EnableDebug - enables the debug option
 func (st *Store) EnableDebug(debug bool) {
 	st.debugEnabled = debug
+}
+
+func (store *Store) toQuerableContext(context context.Context) database.QueryableContext {
+	if database.IsQueryableContext(context) {
+		return context.(database.QueryableContext)
+	}
+
+	return database.Context(context, store.db)
 }
