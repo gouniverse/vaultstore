@@ -10,7 +10,14 @@ import (
 )
 
 func InitDB(filepath string) *sql.DB {
-	os.Remove(filepath) // remove database
+	if filepath != ":memory:" && fileExists(filepath) {
+		err := os.Remove(filepath) // remove database
+
+		if err != nil {
+			panic(err)
+		}
+	}
+
 	dsn := filepath + "?parseTime=true"
 	db, err := sql.Open("sqlite3", dsn)
 	if err != nil {
@@ -69,7 +76,11 @@ func Test_Store_AutoMigrate(t *testing.T) {
 		t.Fatalf("automigrateEnabled: Expected [false] received [%v]", store.automigrateEnabled)
 	}
 
-	store.AutoMigrate()
+	err = store.AutoMigrate()
+
+	if err != nil {
+		t.Fatalf("AutoMigrate Failure [%v]", err.Error())
+	}
 
 	if store.vaultTableName != "vault_automigrate" {
 		t.Fatalf("Expected vaultTableName [vault_automigrate] received [%v]", store.vaultTableName)

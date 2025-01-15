@@ -29,7 +29,11 @@ func NewStore(opts NewStoreOptions) (*Store, error) {
 	}
 
 	if store.automigrateEnabled {
-		store.AutoMigrate()
+		err := store.AutoMigrate()
+
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return store, nil
