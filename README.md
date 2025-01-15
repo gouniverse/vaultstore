@@ -26,7 +26,7 @@ The following schema is used for the database.
 | id          | String, UniqueId |
 | vault_token | Long Text, Unique|
 | vault_value | Long Text        |
-| created_At  | DateTime         |
+| created_at  | DateTime         |
 | updated_at  | DateTime         |
 | deleted_at  | DateTime         |
 
