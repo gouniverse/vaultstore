@@ -44,7 +44,7 @@ func Test_Store_RecordCount(t *testing.T) {
 	})
 
 	if err != nil {
-		t.Fatalf("Test_Store_RecordCount: Expected [err] to be nil received " + err.Error())
+		t.Fatal("Test_Store_RecordCount: Expected [err] to be nil received " + err.Error())
 	}
 
 	if count != 1 {

@@ -3,6 +3,9 @@ package vaultstore
 import "context"
 
 type StoreInterface interface {
+	AutoMigrate() error
+	EnableDebug(debug bool)
+
 	RecordCreate(ctx context.Context, record Record) error
 	RecordFindByID(ctx context.Context, recordID string) (*Record, error)
 	RecordFindByToken(ctx context.Context, token string) (*Record, error)
@@ -14,6 +17,7 @@ type StoreInterface interface {
 	TokenCreateCustom(ctx context.Context, token string, value string, password string) (err error)
 	TokenDelete(ctx context.Context, token string) error
 	TokenRead(ctx context.Context, token string, password string) (string, error)
+
 	//ValueFindByID(id string) (*SearchValue, error)
 	//ValueList(options SearchValueQueryOptions) ([]SearchValue, error)
 	// ValueSoftDelete(valueID string) error

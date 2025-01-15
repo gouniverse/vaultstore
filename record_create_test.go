@@ -22,7 +22,7 @@ func Test_Store_RecordCreate(t *testing.T) {
 	ctx := context.Background()
 	err = store.RecordCreate(ctx, *record)
 	if err != nil {
-		t.Fatalf("Test_Store_RecordCreate: Expected [err] to be nil received " + err.Error())
+		t.Fatal("Test_Store_RecordCreate: Expected [err] to be nil received " + err.Error())
 	}
 
 	exists, err := store.TokenExists(ctx, "test_token")
