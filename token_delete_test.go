@@ -25,7 +25,7 @@ func Test_Store_TokenDelete(t *testing.T) {
 
 	err = store.TokenDelete(ctx, token)
 	if err != nil {
-		t.Fatalf("Test_Store_TokenDelete: Expected [err] to be nil received " + err.Error())
+		t.Fatal("Test_Store_TokenDelete: Expected [err] to be nil received " + err.Error())
 	}
 
 	record, err := store.RecordFindByToken(ctx, token)

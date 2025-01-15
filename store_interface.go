@@ -16,11 +16,13 @@ type StoreInterface interface {
 	TokenCreate(ctx context.Context, value string, password string, tokenLength int) (token string, err error)
 	TokenCreateCustom(ctx context.Context, token string, value string, password string) (err error)
 	TokenDelete(ctx context.Context, token string) error
+	TokenExists(ctx context.Context, token string) (bool, error)
 	TokenRead(ctx context.Context, token string, password string) (string, error)
+	TokenUpdate(ctx context.Context, token string, value string, password string) error
+	TokensRead(ctx context.Context, tokens []string, password string) (map[string]string, error)
 
-	//ValueFindByID(id string) (*SearchValue, error)
-	//ValueList(options SearchValueQueryOptions) ([]SearchValue, error)
+	// ValueFindByID(id string) (*SearchValue, error)
+	// ValueList(options SearchValueQueryOptions) ([]SearchValue, error)
 	// ValueSoftDelete(valueID string) error
 	// ValueSoftDeleteByID(discountID string) error
-	TokenUpdate(ctx context.Context, token string, value string, password string) error
 }
