@@ -73,9 +73,7 @@ func (store *Store) TokenExists(ctx context.Context, token string) (bool, error)
 		return false, errors.New("token is empty")
 	}
 
-	count, err := store.RecordCount(ctx, RecordQueryOptions{
-		Token: token,
-	})
+	count, err := store.RecordCount(ctx, RecordQuery().SetToken(token))
 
 	if err != nil {
 		return false, err
@@ -161,9 +159,7 @@ func (st *Store) TokenUpdate(ctx context.Context, token string, value string, pa
 func (st *Store) TokensRead(ctx context.Context, tokens []string, password string) (values map[string]string, err error) {
 	values = map[string]string{}
 
-	entries, err := st.RecordList(ctx, RecordQueryOptions{
-		TokenIn: tokens,
-	})
+	entries, err := st.RecordList(ctx, RecordQuery().SetTokenIn(tokens))
 
 	if err != nil {
 		return values, err

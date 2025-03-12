@@ -34,9 +34,7 @@ func Test_Store_RecordCount(t *testing.T) {
 		t.Fatalf("Test_Store_RecordCount Failure: [%v]", err.Error())
 	}
 
-	count, err := store.RecordCount(ctx, RecordQueryOptions{
-		Token: "test_token2",
-	})
+	count, err := store.RecordCount(ctx, RecordQuery().SetToken("test_token2"))
 
 	if err != nil {
 		t.Fatal("Test_Store_RecordCount: Expected [err] to be nil received " + err.Error())
@@ -199,7 +197,7 @@ func Test_Store_RecordList(t *testing.T) {
 	}
 
 	// Test listing all records
-	records, err := store.RecordList(ctx, RecordQueryOptions{})
+	records, err := store.RecordList(ctx, RecordQuery())
 	if err != nil {
 		t.Fatalf("Test_Store_RecordList: Expected [err] to be nil received [%v]", err.Error())
 	}
@@ -208,9 +206,7 @@ func Test_Store_RecordList(t *testing.T) {
 	}
 
 	// Test with token filter
-	filteredRecords, err := store.RecordList(ctx, RecordQueryOptions{
-		Token: "test_token_list_C",
-	})
+	filteredRecords, err := store.RecordList(ctx, RecordQuery().SetToken("test_token_list_C"))
 	if err != nil {
 		t.Fatalf("Test_Store_RecordList: Expected [err] to be nil received [%v]", err.Error())
 	}
@@ -222,9 +218,7 @@ func Test_Store_RecordList(t *testing.T) {
 	}
 
 	// Test with limit
-	limitedRecords, err := store.RecordList(ctx, RecordQueryOptions{
-		Limit: 2,
-	})
+	limitedRecords, err := store.RecordList(ctx, RecordQuery().SetLimit(2))
 	if err != nil {
 		t.Fatalf("Test_Store_RecordList: Expected [err] to be nil received [%v]", err.Error())
 	}
@@ -233,9 +227,7 @@ func Test_Store_RecordList(t *testing.T) {
 	}
 
 	// Test with token list filter
-	tokenListRecords, err := store.RecordList(ctx, RecordQueryOptions{
-		TokenIn: []string{"test_token_list_A", "test_token_list_E"},
-	})
+	tokenListRecords, err := store.RecordList(ctx, RecordQuery().SetTokenIn([]string{"test_token_list_A", "test_token_list_E"}))
 	if err != nil {
 		t.Fatalf("Test_Store_RecordList: Expected [err] to be nil received [%v]", err.Error())
 	}

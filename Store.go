@@ -49,6 +49,14 @@ func (st *Store) EnableDebug(debug bool) {
 	st.debugEnabled = debug
 }
 
+func (st *Store) GetDbDriverName() string {
+	return st.dbDriverName
+}
+
+func (st *Store) GetVaultTableName() string {
+	return st.vaultTableName
+}
+
 func (store *Store) toQuerableContext(context context.Context) database.QueryableContext {
 	if database.IsQueryableContext(context) {
 		return context.(database.QueryableContext)
