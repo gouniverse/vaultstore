@@ -8,6 +8,7 @@ type StoreInterface interface {
 
 	RecordCount(ctx context.Context, options RecordQueryOptions) (int64, error)
 	RecordCreate(ctx context.Context, record Record) error
+	RecordDeleteByToken(ctx context.Context, token string) error
 	RecordFindByID(ctx context.Context, recordID string) (*Record, error)
 	RecordFindByToken(ctx context.Context, token string) (*Record, error)
 	RecordList(ctx context.Context, options RecordQueryOptions) ([]Record, error)
