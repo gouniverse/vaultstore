@@ -6,6 +6,7 @@ type StoreInterface interface {
 	AutoMigrate() error
 	EnableDebug(debug bool)
 
+	RecordCount(ctx context.Context, options RecordQueryOptions) (int64, error)
 	RecordCreate(ctx context.Context, record Record) error
 	RecordFindByID(ctx context.Context, recordID string) (*Record, error)
 	RecordFindByToken(ctx context.Context, token string) (*Record, error)
@@ -20,9 +21,4 @@ type StoreInterface interface {
 	TokenRead(ctx context.Context, token string, password string) (string, error)
 	TokenUpdate(ctx context.Context, token string, value string, password string) error
 	TokensRead(ctx context.Context, tokens []string, password string) (map[string]string, error)
-
-	// ValueFindByID(id string) (*SearchValue, error)
-	// ValueList(options SearchValueQueryOptions) ([]SearchValue, error)
-	// ValueSoftDelete(valueID string) error
-	// ValueSoftDeleteByID(discountID string) error
 }

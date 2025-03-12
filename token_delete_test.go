@@ -6,12 +6,7 @@ import (
 )
 
 func Test_Store_TokenDelete(t *testing.T) {
-	db := InitDB("test_vaultstore_tokendelete.db")
-	store, err := NewStore(NewStoreOptions{
-		VaultTableName:     "token_delete",
-		DB:                 db,
-		AutomigrateEnabled: true,
-	})
+	store, err := initStore(":memory:")
 
 	if err != nil {
 		t.Fatalf("Test_Store_ValueDelete: Expected [err] to be nil received [%v]", err.Error())

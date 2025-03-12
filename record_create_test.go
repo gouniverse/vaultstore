@@ -6,12 +6,7 @@ import (
 )
 
 func Test_Store_RecordCreate(t *testing.T) {
-	db := InitDB("test_vaultstore_recordcreate.db")
-	store, err := NewStore(NewStoreOptions{
-		VaultTableName:     "record_create",
-		DB:                 db,
-		AutomigrateEnabled: true,
-	})
+	store, err := initStore(":memory:")
 
 	if err != nil {
 		t.Fatal("Test_Store_RecordCreate: Expected [err] to be nil received: ", err.Error())

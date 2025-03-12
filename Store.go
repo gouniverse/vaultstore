@@ -3,6 +3,7 @@ package vaultstore
 import (
 	"context"
 	"log"
+	"log/slog"
 
 	"database/sql"
 
@@ -20,6 +21,7 @@ type Store struct {
 	dbDriverName       string
 	automigrateEnabled bool
 	debugEnabled       bool
+	sqlLogger          *slog.Logger
 }
 
 var _ StoreInterface = (*Store)(nil) // verify it extends the interface

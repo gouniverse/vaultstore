@@ -7,16 +7,10 @@ import (
 )
 
 func Test_Store_TokenCreate(t *testing.T) {
-	db := InitDB("test_vaultstore_tokencreate.db")
-
-	store, err := NewStore(NewStoreOptions{
-		VaultTableName:     "token_create",
-		DB:                 db,
-		AutomigrateEnabled: true,
-	})
+	store, err := initStore(":memory:")
 
 	if err != nil {
-		t.Fatalf("value store: Expected [err] to be nil received [%v]", err.Error())
+		t.Fatalf("Test_Store_TokenCreate: Expected [err] to be nil received [%v]", err.Error())
 	}
 
 	ctx := context.Background()

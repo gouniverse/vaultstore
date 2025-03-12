@@ -6,12 +6,7 @@ import (
 )
 
 func Test_Store_RecordCount(t *testing.T) {
-	db := InitDB("test_vaultstore_recordcount.db")
-	store, err := NewStore(NewStoreOptions{
-		VaultTableName:     "record_count",
-		DB:                 db,
-		AutomigrateEnabled: true,
-	})
+	store, err := initStore(":memory:")
 
 	if err != nil {
 		t.Fatalf("Test_Store_ValueDelete: Expected [err] to be nil received [%v]", err.Error())

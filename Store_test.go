@@ -1,6 +1,7 @@
 package vaultstore
 
 import (
+	"errors"
 	"os"
 	"testing"
 
@@ -9,26 +10,53 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-func InitDB(filepath string) *sql.DB {
+func initDB(filepath string) (*sql.DB, error) {
 	if filepath != ":memory:" && fileExists(filepath) {
 		err := os.Remove(filepath) // remove database
 
 		if err != nil {
-			panic(err)
+			return nil, err
 		}
 	}
 
 	dsn := filepath + "?parseTime=true"
 	db, err := sql.Open("sqlite3", dsn)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
-	return db
+	return db, nil
 }
 
-func TestWithAutoMigrate(t *testing.T) {
-	db := InitDB("test_vaultstore_with_automigrate.db")
+func initStore(filepath string) (StoreInterface, error) {
+	db, err := initDB(filepath)
+	if err != nil {
+		return nil, err
+	}
+
+	store, err := NewStore(NewStoreOptions{
+		VaultTableName:     "vault_token",
+		DB:                 db,
+		AutomigrateEnabled: true,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if store == nil {
+		return nil, errors.New("unexpected nil store")
+	}
+
+	return store, nil
+}
+
+func TestWithAutoMigrateFalse(t *testing.T) {
+	db, err := initDB(":memory:")
+
+	if err != nil {
+		t.Fatalf("initDB: Expected [err] to be nil received [%v]", err.Error())
+	}
 
 	storeAutomigrateFalse, errAutomigrateFalse := NewStore(NewStoreOptions{
 		VaultTableName:     "vault_with_automigrate_false",
@@ -60,7 +88,11 @@ func TestWithAutoMigrate(t *testing.T) {
 }
 
 func Test_Store_AutoMigrate(t *testing.T) {
-	db := InitDB("test_vaultstore_automigrate")
+	db, err := initDB(":memory:")
+
+	if err != nil {
+		t.Fatalf("initDB: Expected [err] to be nil received [%v]", err.Error())
+	}
 
 	store, err := NewStore(NewStoreOptions{
 		VaultTableName:     "vault_automigrate",
