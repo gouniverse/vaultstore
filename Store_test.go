@@ -1,13 +1,15 @@
 package vaultstore
 
 import (
+	"context"
 	"errors"
 	"os"
+	"strings"
 	"testing"
 
 	"database/sql"
 
-	_ "github.com/mattn/go-sqlite3"
+	_ "modernc.org/sqlite"
 )
 
 func initDB(filepath string) (*sql.DB, error) {
@@ -20,7 +22,7 @@ func initDB(filepath string) (*sql.DB, error) {
 	}
 
 	dsn := filepath + "?parseTime=true"
-	db, err := sql.Open("sqlite3", dsn)
+	db, err := sql.Open("sqlite", dsn)
 	if err != nil {
 		return nil, err
 	}
@@ -224,5 +226,170 @@ func Test_isBase64(t *testing.T) {
 	ret = isBase64("Hello")
 	if ret {
 		t.Fatalf("isBase64 should ret FALSE, Failure")
+	}
+}
+
+func Test_NewStore_Errors(t *testing.T) {
+	// Test with empty table name
+	db, err := initDB(":memory:")
+	if err != nil {
+		t.Fatalf("initDB: Expected [err] to be nil received [%v]", err.Error())
+	}
+
+	store, err := NewStore(NewStoreOptions{
+		VaultTableName:     "",
+		DB:                 db,
+		AutomigrateEnabled: false,
+	})
+
+	if err == nil {
+		t.Fatal("Expected error for empty table name but got nil")
+	}
+	if store != nil {
+		t.Fatal("Expected nil store for empty table name")
+	}
+
+	// Test with nil DB
+	store, err = NewStore(NewStoreOptions{
+		VaultTableName:     "vault_test",
+		DB:                 nil,
+		AutomigrateEnabled: false,
+	})
+
+	if err == nil {
+		t.Fatal("Expected error for nil DB but got nil")
+	}
+	if store != nil {
+		t.Fatal("Expected nil store for nil DB")
+	}
+}
+
+func Test_Store_EnableDebug(t *testing.T) {
+	db, err := initDB(":memory:")
+	if err != nil {
+		t.Fatalf("initDB: Expected [err] to be nil received [%v]", err.Error())
+	}
+
+	store, err := NewStore(NewStoreOptions{
+		VaultTableName:     "vault_debug_test",
+		DB:                 db,
+		AutomigrateEnabled: false,
+		DebugEnabled:       false,
+	})
+
+	if err != nil {
+		t.Fatalf("NewStore: Expected [err] to be nil received [%v]", err.Error())
+	}
+
+	// Verify initial debug state
+	if store.debugEnabled != false {
+		t.Fatalf("Expected debugEnabled to be false initially, got %v", store.debugEnabled)
+	}
+
+	// Enable debug
+	store.EnableDebug(true)
+	if store.debugEnabled != true {
+		t.Fatalf("Expected debugEnabled to be true after enabling, got %v", store.debugEnabled)
+	}
+
+	// Disable debug
+	store.EnableDebug(false)
+	if store.debugEnabled != false {
+		t.Fatalf("Expected debugEnabled to be false after disabling, got %v", store.debugEnabled)
+	}
+}
+
+func Test_Store_SqlCreateTable(t *testing.T) {
+	db, err := initDB(":memory:")
+	if err != nil {
+		t.Fatalf("initDB: Expected [err] to be nil received [%v]", err.Error())
+	}
+
+	store, err := NewStore(NewStoreOptions{
+		VaultTableName:     "vault_sql_test",
+		DB:                 db,
+		AutomigrateEnabled: false,
+	})
+
+	if err != nil {
+		t.Fatalf("NewStore: Expected [err] to be nil received [%v]", err.Error())
+	}
+
+	sql := store.SqlCreateTable()
+
+	// Check that the SQL contains the table name
+	if sql == "" {
+		t.Fatal("Expected non-empty SQL statement")
+	}
+
+	if !strings.Contains(sql, "vault_sql_test") {
+		t.Fatalf("Expected SQL to contain table name 'vault_sql_test', got: %s", sql)
+	}
+}
+
+func Test_Store_DbDriverName(t *testing.T) {
+	db, err := initDB(":memory:")
+	if err != nil {
+		t.Fatalf("initDB: Expected [err] to be nil received [%v]", err.Error())
+	}
+
+	// Test with explicit driver name
+	store, err := NewStore(NewStoreOptions{
+		VaultTableName:     "vault_driver_test",
+		DB:                 db,
+		DbDriverName:       "custom_driver",
+		AutomigrateEnabled: false,
+	})
+
+	if err != nil {
+		t.Fatalf("NewStore: Expected [err] to be nil received [%v]", err.Error())
+	}
+
+	if store.dbDriverName != "custom_driver" {
+		t.Fatalf("Expected dbDriverName to be 'custom_driver', got %s", store.dbDriverName)
+	}
+
+	// Test with auto-detected driver name
+	store2, err := NewStore(NewStoreOptions{
+		VaultTableName:     "vault_driver_test2",
+		DB:                 db,
+		DbDriverName:       "", // Empty to test auto-detection
+		AutomigrateEnabled: false,
+	})
+
+	if err != nil {
+		t.Fatalf("NewStore: Expected [err] to be nil received [%v]", err.Error())
+	}
+
+	// The driver name should be auto-detected
+	if store2.dbDriverName == "" {
+		t.Fatal("Expected dbDriverName to be auto-detected, got empty string")
+	}
+}
+
+func Test_Store_toQuerableContext(t *testing.T) {
+	db, err := initDB(":memory:")
+	if err != nil {
+		t.Fatalf("initDB: Expected [err] to be nil received [%v]", err.Error())
+	}
+
+	store, err := NewStore(NewStoreOptions{
+		VaultTableName:     "vault_context_test",
+		DB:                 db,
+		AutomigrateEnabled: false,
+	})
+
+	if err != nil {
+		t.Fatalf("NewStore: Expected [err] to be nil received [%v]", err.Error())
+	}
+
+	// Test with regular context
+	ctx := context.Background()
+	qctx := store.toQuerableContext(ctx)
+
+	// Instead of comparing with nil directly, we can check if it's a valid interface
+	var nilTest any = qctx
+	if nilTest == nil {
+		t.Fatal("Expected non-nil QueryableContext")
 	}
 }
