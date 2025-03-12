@@ -15,21 +15,21 @@ func Test_Store_RecordCount(t *testing.T) {
 	record := NewRecord().SetToken("test_token1").SetValue("test_value")
 
 	ctx := context.Background()
-	err = store.RecordCreate(ctx, *record)
+	err = store.RecordCreate(ctx, record)
 	if err != nil {
 		t.Fatalf("Test_Store_RecordCount Failure: [%v]", err.Error())
 	}
 
 	record = NewRecord().SetToken("test_token2").SetValue("test_value")
 
-	err = store.RecordCreate(context.Background(), *record)
+	err = store.RecordCreate(context.Background(), record)
 	if err != nil {
 		t.Fatalf("Test_Store_RecordCount Failure: [%v]", err.Error())
 	}
 
 	record = NewRecord().SetToken("test_token3").SetValue("test_value")
 
-	err = store.RecordCreate(ctx, *record)
+	err = store.RecordCreate(ctx, record)
 	if err != nil {
 		t.Fatalf("Test_Store_RecordCount Failure: [%v]", err.Error())
 	}
@@ -58,7 +58,7 @@ func Test_Store_RecordCreate(t *testing.T) {
 	record := NewRecord().SetToken("test_token").SetValue("test_value")
 
 	ctx := context.Background()
-	err = store.RecordCreate(ctx, *record)
+	err = store.RecordCreate(ctx, record)
 	if err != nil {
 		t.Fatal("Test_Store_RecordCreate: Expected [err] to be nil received " + err.Error())
 	}
@@ -93,9 +93,9 @@ func Test_Store_RecordFindByID(t *testing.T) {
 
 	// Create a record
 	newRecord := NewRecord().SetToken("test_token_find_by_id").SetValue("test_value_find_by_id")
-	recordID := newRecord.ID()
+	recordID := newRecord.GetID()
 
-	err = store.RecordCreate(ctx, *newRecord)
+	err = store.RecordCreate(ctx, newRecord)
 	if err != nil {
 		t.Fatalf("Test_Store_RecordFindByID: Failed to create record: [%v]", err.Error())
 	}
@@ -108,14 +108,14 @@ func Test_Store_RecordFindByID(t *testing.T) {
 	if foundRecord == nil {
 		t.Fatal("Test_Store_RecordFindByID: Expected to find record but got nil")
 	}
-	if foundRecord.ID() != recordID {
-		t.Fatalf("Test_Store_RecordFindByID: Expected ID [%s] but got [%s]", recordID, foundRecord.ID())
+	if foundRecord.GetID() != recordID {
+		t.Fatalf("Test_Store_RecordFindByID: Expected ID [%s] but got [%s]", recordID, foundRecord.GetID())
 	}
-	if foundRecord.Token() != "test_token_find_by_id" {
-		t.Fatalf("Test_Store_RecordFindByID: Expected Token [test_token_find_by_id] but got [%s]", foundRecord.Token())
+	if foundRecord.GetToken() != "test_token_find_by_id" {
+		t.Fatalf("Test_Store_RecordFindByID: Expected Token [test_token_find_by_id] but got [%s]", foundRecord.GetToken())
 	}
-	if foundRecord.Value() != "test_value_find_by_id" {
-		t.Fatalf("Test_Store_RecordFindByID: Expected Value [test_value_find_by_id] but got [%s]", foundRecord.Value())
+	if foundRecord.GetValue() != "test_value_find_by_id" {
+		t.Fatalf("Test_Store_RecordFindByID: Expected Value [test_value_find_by_id] but got [%s]", foundRecord.GetValue())
 	}
 
 	// Test with non-existent ID
@@ -149,7 +149,7 @@ func Test_Store_RecordFindByToken(t *testing.T) {
 	token := "test_token_find"
 	newRecord := NewRecord().SetToken(token).SetValue("test_value_find")
 
-	err = store.RecordCreate(ctx, *newRecord)
+	err = store.RecordCreate(ctx, newRecord)
 	if err != nil {
 		t.Fatalf("Test_Store_RecordFindByToken: Failed to create record: [%v]", err.Error())
 	}
@@ -162,11 +162,11 @@ func Test_Store_RecordFindByToken(t *testing.T) {
 	if foundRecord == nil {
 		t.Fatal("Test_Store_RecordFindByToken: Expected to find record but got nil")
 	}
-	if foundRecord.Token() != token {
-		t.Fatalf("Test_Store_RecordFindByToken: Expected Token [%s] but got [%s]", token, foundRecord.Token())
+	if foundRecord.GetToken() != token {
+		t.Fatalf("Test_Store_RecordFindByToken: Expected Token [%s] but got [%s]", token, foundRecord.GetToken())
 	}
-	if foundRecord.Value() != "test_value_find" {
-		t.Fatalf("Test_Store_RecordFindByToken: Expected Value [test_value_find] but got [%s]", foundRecord.Value())
+	if foundRecord.GetValue() != "test_value_find" {
+		t.Fatalf("Test_Store_RecordFindByToken: Expected Value [test_value_find] but got [%s]", foundRecord.GetValue())
 	}
 
 	// Test with non-existent token
@@ -192,7 +192,7 @@ func Test_Store_RecordList(t *testing.T) {
 		token := "test_token_list_" + string(rune('A'+i-1))
 		record := NewRecord().SetToken(token).SetValue("test_value_" + string(rune('A'+i-1)))
 
-		err = store.RecordCreate(ctx, *record)
+		err = store.RecordCreate(ctx, record)
 		if err != nil {
 			t.Fatalf("Test_Store_RecordList: Failed to create record: [%v]", err.Error())
 		}
@@ -217,8 +217,8 @@ func Test_Store_RecordList(t *testing.T) {
 	if len(filteredRecords) != 1 {
 		t.Fatalf("Test_Store_RecordList: Expected 1 record with token filter but got %d", len(filteredRecords))
 	}
-	if filteredRecords[0].Token() != "test_token_list_C" {
-		t.Fatalf("Test_Store_RecordList: Expected Token [test_token_list_C] but got [%s]", filteredRecords[0].Token())
+	if filteredRecords[0].GetToken() != "test_token_list_C" {
+		t.Fatalf("Test_Store_RecordList: Expected Token [test_token_list_C] but got [%s]", filteredRecords[0].GetToken())
 	}
 
 	// Test with limit
@@ -254,9 +254,9 @@ func Test_Store_RecordUpdate(t *testing.T) {
 
 	// Create a record
 	record := NewRecord().SetToken("test_token_update").SetValue("test_value_original")
-	recordID := record.ID()
+	recordID := record.GetID()
 
-	err = store.RecordCreate(ctx, *record)
+	err = store.RecordCreate(ctx, record)
 	if err != nil {
 		t.Fatalf("Test_Store_RecordUpdate: Failed to create record: [%v]", err.Error())
 	}
@@ -272,7 +272,7 @@ func Test_Store_RecordUpdate(t *testing.T) {
 
 	// Update the record
 	foundRecord.SetValue("test_value_updated")
-	err = store.RecordUpdate(ctx, *foundRecord)
+	err = store.RecordUpdate(ctx, foundRecord)
 	if err != nil {
 		t.Fatalf("Test_Store_RecordUpdate: Failed to update record: [%v]", err.Error())
 	}
@@ -285,12 +285,12 @@ func Test_Store_RecordUpdate(t *testing.T) {
 	if updatedRecord == nil {
 		t.Fatal("Test_Store_RecordUpdate: Expected to find updated record but got nil")
 	}
-	if updatedRecord.Value() != "test_value_updated" {
-		t.Fatalf("Test_Store_RecordUpdate: Expected updated Value [test_value_updated] but got [%s]", updatedRecord.Value())
+	if updatedRecord.GetValue() != "test_value_updated" {
+		t.Fatalf("Test_Store_RecordUpdate: Expected updated Value [test_value_updated] but got [%s]", updatedRecord.GetValue())
 	}
 
 	// Test update with no changes
-	err = store.RecordUpdate(ctx, *updatedRecord)
+	err = store.RecordUpdate(ctx, updatedRecord)
 	if err != nil {
 		t.Fatalf("Test_Store_RecordUpdate: Expected [err] to be nil for no changes but got [%v]", err.Error())
 	}
@@ -312,9 +312,9 @@ func Test_Store_RecordDeleteByID(t *testing.T) {
 
 	// Create a record
 	record := NewRecord().SetToken("test_token_delete_id").SetValue("test_value_delete")
-	recordID := record.ID()
+	recordID := record.GetID()
 
-	err = store.RecordCreate(ctx, *record)
+	err = store.RecordCreate(ctx, record)
 	if err != nil {
 		t.Fatalf("Test_Store_RecordDeleteByID: Failed to create record: [%v]", err.Error())
 	}
@@ -368,7 +368,7 @@ func Test_Store_RecordDeleteByToken(t *testing.T) {
 	token := "test_token_delete"
 	record := NewRecord().SetToken(token).SetValue("test_value_delete")
 
-	err = store.RecordCreate(ctx, *record)
+	err = store.RecordCreate(ctx, record)
 	if err != nil {
 		t.Fatalf("Test_Store_RecordDeleteByToken: Failed to create record: [%v]", err.Error())
 	}

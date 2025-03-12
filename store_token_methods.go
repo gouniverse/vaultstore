@@ -25,7 +25,7 @@ func (st *Store) TokenCreate(ctx context.Context, data string, password string, 
 		SetCreatedAt(carbon.Now(carbon.UTC).ToDateTimeString(carbon.UTC)).
 		SetUpdatedAt(carbon.Now(carbon.UTC).ToDateTimeString(carbon.UTC))
 
-	err = st.RecordCreate(ctx, *newEntry)
+	err = st.RecordCreate(ctx, newEntry)
 
 	if err != nil {
 		return "", err
@@ -43,7 +43,7 @@ func (store *Store) TokenCreateCustom(ctx context.Context, token string, data st
 		SetCreatedAt(carbon.Now(carbon.UTC).ToDateTimeString(carbon.UTC)).
 		SetUpdatedAt(carbon.Now(carbon.UTC).ToDateTimeString(carbon.UTC))
 
-	err = store.RecordCreate(ctx, *newEntry)
+	err = store.RecordCreate(ctx, newEntry)
 
 	if err != nil {
 		return err
@@ -107,7 +107,7 @@ func (st *Store) TokenRead(ctx context.Context, token string, password string) (
 		return "", errors.New("token does not exist")
 	}
 
-	decoded, err := decode(entry.Value(), password)
+	decoded, err := decode(entry.GetValue(), password)
 
 	if err != nil {
 		return "", err
@@ -143,7 +143,7 @@ func (st *Store) TokenUpdate(ctx context.Context, token string, value string, pa
 
 	entry.SetValue(encodedValue)
 
-	return st.RecordUpdate(ctx, *entry)
+	return st.RecordUpdate(ctx, entry)
 }
 
 // TokensRead reads a list of tokens, returns a map of token to value
@@ -170,8 +170,8 @@ func (st *Store) TokensRead(ctx context.Context, tokens []string, password strin
 	}
 
 	if len(entries) != len(tokens) {
-		var entryTokens = lo.Map(entries, func(entry Record, _ int) string {
-			return entry.Token()
+		var entryTokens = lo.Map(entries, func(entry RecordInterface, _ int) string {
+			return entry.GetToken()
 		})
 
 		_, missingTokens := lo.Difference(tokens, entryTokens)
@@ -180,13 +180,13 @@ func (st *Store) TokensRead(ctx context.Context, tokens []string, password strin
 	}
 
 	for _, entry := range entries {
-		decoded, err := decode(entry.Value(), password)
+		decoded, err := decode(entry.GetValue(), password)
 
 		if err != nil {
-			return map[string]string{}, errors.New("decode error for token: " + entry.Token() + " : " + err.Error())
+			return map[string]string{}, errors.New("decode error for token: " + entry.GetToken() + " : " + err.Error())
 		}
 
-		values[entry.Token()] = decoded
+		values[entry.GetToken()] = decoded
 	}
 
 	return values, nil

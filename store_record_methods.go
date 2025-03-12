@@ -53,7 +53,7 @@ func (store *Store) RecordCount(ctx context.Context, options RecordQueryOptions)
 	return i, nil
 }
 
-func (store *Store) RecordCreate(ctx context.Context, record Record) error {
+func (store *Store) RecordCreate(ctx context.Context, record RecordInterface) error {
 	record.SetCreatedAt(carbon.Now(carbon.UTC).ToDateTimeString(carbon.UTC))
 	record.SetUpdatedAt(carbon.Now(carbon.UTC).ToDateTimeString(carbon.UTC))
 
@@ -141,7 +141,7 @@ func (store *Store) RecordDeleteByToken(ctx context.Context, token string) error
 }
 
 // FindByID finds an entry by ID
-func (st *Store) RecordFindByID(ctx context.Context, id string) (*Record, error) {
+func (st *Store) RecordFindByID(ctx context.Context, id string) (RecordInterface, error) {
 	if id == "" {
 		return nil, errors.New("record id is empty")
 	}
@@ -170,18 +170,18 @@ func (st *Store) RecordFindByID(ctx context.Context, id string) (*Record, error)
 		return nil, err
 	}
 
-	list := []Record{}
+	list := []RecordInterface{}
 
 	lo.ForEach(modelMaps, func(modelMap map[string]string, index int) {
 		model := NewRecordFromExistingData(modelMap)
-		list = append(list, *model)
+		list = append(list, model)
 	})
 
 	if len(list) == 0 {
 		return nil, nil
 	}
 
-	return &list[0], nil
+	return list[0], nil
 }
 
 // RecordFindByToken finds a record entity by token
@@ -195,7 +195,7 @@ func (st *Store) RecordFindByID(ctx context.Context, id string) (*Record, error)
 // Returns:
 // - record: The record found
 // - err: An error if something went wrong
-func (st *Store) RecordFindByToken(ctx context.Context, token string) (*Record, error) {
+func (st *Store) RecordFindByToken(ctx context.Context, token string) (RecordInterface, error) {
 	if token == "" {
 		return nil, errors.New("token is empty")
 	}
@@ -213,10 +213,10 @@ func (st *Store) RecordFindByToken(ctx context.Context, token string) (*Record, 
 		return nil, nil
 	}
 
-	return &records[0], nil
+	return records[0], nil
 }
 
-func (store *Store) RecordUpdate(ctx context.Context, record Record) error {
+func (store *Store) RecordUpdate(ctx context.Context, record RecordInterface) error {
 	record.SetUpdatedAt(carbon.Now(carbon.UTC).ToDateTimeString(carbon.UTC))
 
 	dataChanged := record.DataChanged()
@@ -232,7 +232,7 @@ func (store *Store) RecordUpdate(ctx context.Context, record Record) error {
 		Update(store.vaultTableName).
 		Prepared(true).
 		Set(dataChanged).
-		Where(goqu.C(COLUMN_ID).Eq(record.ID())).
+		Where(goqu.C(COLUMN_ID).Eq(record.GetID())).
 		ToSQL()
 
 	if err != nil {
@@ -252,13 +252,13 @@ func (store *Store) RecordUpdate(ctx context.Context, record Record) error {
 	return nil
 }
 
-func (store *Store) RecordList(ctx context.Context, options RecordQueryOptions) ([]Record, error) {
+func (store *Store) RecordList(ctx context.Context, options RecordQueryOptions) ([]RecordInterface, error) {
 	q := store.recordQuery(options)
 
 	sqlStr, sqlParams, errSql := q.Select().Prepared(true).ToSQL()
 
 	if errSql != nil {
-		return []Record{}, nil
+		return []RecordInterface{}, nil
 	}
 
 	if store.debugEnabled {
@@ -268,14 +268,14 @@ func (store *Store) RecordList(ctx context.Context, options RecordQueryOptions) 
 	modelMaps, err := database.SelectToMapString(store.toQuerableContext(ctx), sqlStr, sqlParams...)
 
 	if err != nil {
-		return []Record{}, err
+		return []RecordInterface{}, err
 	}
 
-	list := []Record{}
+	list := []RecordInterface{}
 
 	lo.ForEach(modelMaps, func(modelMap map[string]string, index int) {
 		model := NewRecordFromExistingData(modelMap)
-		list = append(list, *model)
+		list = append(list, model)
 	})
 
 	return list, nil
