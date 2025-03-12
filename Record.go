@@ -20,7 +20,7 @@ func NewRecord() RecordInterface {
 		SetID(uid.HumanUid()).
 		SetCreatedAt(carbon.Now(carbon.UTC).ToDateTimeString(carbon.UTC)).
 		SetUpdatedAt(carbon.Now(carbon.UTC).ToDateTimeString(carbon.UTC)).
-		SetDeletedAt(sb.MAX_DATETIME)
+		SetSoftDeletedAt(sb.MAX_DATETIME)
 
 	return d
 }
@@ -44,12 +44,12 @@ func (v *record) SetCreatedAt(createdAt string) RecordInterface {
 	return v
 }
 
-func (v *record) GetDeletedAt() string {
-	return v.Get(COLUMN_DELETED_AT)
+func (v *record) GetSoftDeletedAt() string {
+	return v.Get(COLUMN_SOFT_DELETED_AT)
 }
 
-func (v *record) SetDeletedAt(deletedAt string) RecordInterface {
-	v.Set(COLUMN_DELETED_AT, deletedAt)
+func (v *record) SetSoftDeletedAt(softDeletedAt string) RecordInterface {
+	v.Set(COLUMN_SOFT_DELETED_AT, softDeletedAt)
 	return v
 }
 

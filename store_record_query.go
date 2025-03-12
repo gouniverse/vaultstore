@@ -117,7 +117,7 @@ func (rq *recordQueryImpl) toSelectDataset(store StoreInterface) (*goqu.SelectDa
 	}
 
 	if !rq.IsWithDeletedSet() {
-		q = q.Where(goqu.C(COLUMN_DELETED_AT).Gt(carbon.Now(carbon.UTC).ToDateTimeString()))
+		q = q.Where(goqu.C(COLUMN_SOFT_DELETED_AT).Gt(carbon.Now(carbon.UTC).ToDateTimeString()))
 	}
 
 	return q, nil

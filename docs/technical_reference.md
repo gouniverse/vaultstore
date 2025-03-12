@@ -34,6 +34,20 @@ It embeds `dataobject.DataObject` for storing data. The struct provides methods 
 - `UpdatedAt()` / `SetUpdatedAt(updatedAt string)`: Get/set the record's update timestamp
 - `DeletedAt()` / `SetDeletedAt(deletedAt string)`: Get/set the record's deletion timestamp
 
+## Query Interface
+
+The `RecordQueryInterface` provides a flexible way to search and filter records in the VaultStore. It is implemented by the `recordQueryImpl` struct and offers methods for building complex queries.
+
+Key features of the query interface:
+
+- Filtering by ID or token (single or multiple values)
+- Pagination with limit and offset
+- Sorting with order by and sort direction
+- Option to include deleted records
+- Option to only count records
+
+For detailed usage examples, see the [Query Interface documentation](./query_interface.md).
+
 ## Store Implementation
 
 The `Store` struct implements the `StoreInterface` and provides methods for interacting with the database.

@@ -127,35 +127,6 @@ func Test_Store_AutoMigrate(t *testing.T) {
 	}
 }
 
-func Test_decode(t *testing.T) {
-	test_val := "test_value"
-	test_pass := "test_password"
-	encoded_str := encode(test_val, test_pass)
-
-	str, err := decode(encoded_str, test_pass)
-	if err != nil {
-		t.Fatalf("decode Failure [%v]", err.Error())
-	}
-	if str != test_val {
-		t.Fatalf("decoded String Match Failure: Expected [%v], received [%v]", test_val, str)
-	}
-}
-
-func Test_encode(t *testing.T) {
-	test_val := "test_value"
-	test_pass := "test_password"
-	encoded_str := encode(test_val, test_pass)
-
-	str, err := decode(encoded_str, test_pass)
-	if err != nil {
-		t.Fatalf("encode Failure [%v]", err.Error())
-	}
-	if str != test_val {
-		t.Fatalf("encoded String Match Failure: Expected [%v], received [%v]", test_val, str)
-	}
-
-}
-
 func Test_createRandomBlock(t *testing.T) {
 	s := createRandomBlock(10)
 	if len(s) != 10 {

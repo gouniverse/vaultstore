@@ -12,6 +12,14 @@ VaultStore is specifically designed as a data store component for securely stori
 
 VaultStore is meant to be integrated into your application as a library, providing the data storage layer for your secrets management needs. The application using VaultStore is responsible for implementing any additional layers such as API endpoints, user management, or access control if needed.
 
+## Documentation
+
+- [Overview](/docs/overview.md) - General overview of the VaultStore library
+- [Usage Guide](/docs/usage_guide.md) - Examples of how to use VaultStore
+- [Technical Reference](/docs/technical_reference.md) - Detailed technical information
+- [Query Interface](/docs/query_interface.md) - Documentation for the flexible query interface
+- [Data Stores](/docs/data_stores.md) - Information about the data store implementation
+
 ## License
 
 This project is licensed under the GNU Affero General Public License v3.0 (AGPL-3.0). You can find a copy of the license at [https://www.gnu.org/licenses/agpl-3.0.en.html](https://www.gnu.org/licenses/agpl-3.0.txt)

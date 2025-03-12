@@ -31,7 +31,7 @@ func (store *Store) SqlCreateTable() string {
 			Type: sb.COLUMN_TYPE_DATETIME,
 		}).
 		Column(sb.Column{
-			Name: COLUMN_DELETED_AT,
+			Name: COLUMN_SOFT_DELETED_AT,
 			Type: sb.COLUMN_TYPE_DATETIME,
 		}).
 		CreateIfNotExists()

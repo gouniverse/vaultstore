@@ -1,7 +1,7 @@
 package vaultstore
 
 const COLUMN_CREATED_AT = "created_at"
-const COLUMN_DELETED_AT = "deleted_at"
+const COLUMN_SOFT_DELETED_AT = "soft_deleted_at"
 const COLUMN_ID = "id"
 const COLUMN_UPDATED_AT = "updated_at"
 const COLUMN_VAULT_TOKEN = "vault_token"

@@ -168,6 +168,60 @@ for token, value := range values {
 }
 ```
 
+### Using the Query Interface
+
+VaultStore provides a flexible query interface for searching and filtering records:
+
+```go
+ctx := context.Background()
+
+// Create a query to find the 10 most recently created records
+query := vaultstore.RecordQuery().
+    SetLimit(10).
+    SetOrderBy("created_at").
+    SetSortOrder("desc")
+
+records, err := store.RecordList(ctx, query)
+if err != nil {
+    panic(err)
+}
+
+// Display the records
+for _, record := range records {
+    fmt.Printf("ID: %s, Token: %s\n", record.GetID(), record.GetToken())
+}
+```
+
+#### Filtering by Token
+
+```go
+ctx := context.Background()
+query := vaultstore.RecordQuery().
+    SetToken("my-token")
+
+record, err := store.RecordFindByToken(ctx, "my-token")
+if err != nil {
+    panic(err)
+}
+```
+
+#### Counting Records
+
+```go
+ctx := context.Background()
+query := vaultstore.RecordQuery().
+    SetCountOnly(true)
+
+count, err := store.RecordCount(ctx, query)
+if err != nil {
+    panic(err)
+}
+
+fmt.Printf("Total records: %d\n", count)
+```
+
+For more detailed information about the query interface, see the [Query Interface documentation](./query_interface.md).
+
 ### Working with Records Directly
 
 If you need more control, you can work with records directly:
@@ -203,4 +257,3 @@ err = store.RecordDeleteByID(ctx, foundRecord.ID())
 if err != nil {
     panic(err)
 }
-```

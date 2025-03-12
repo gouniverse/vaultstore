@@ -13,7 +13,7 @@ type RecordInterface interface {
 
 	// Getters
 	GetCreatedAt() string
-	GetDeletedAt() string
+	GetSoftDeletedAt() string
 	GetID() string
 	GetToken() string
 	GetUpdatedAt() string
@@ -21,7 +21,7 @@ type RecordInterface interface {
 
 	// Setters
 	SetCreatedAt(createdAt string) RecordInterface
-	SetDeletedAt(deletedAt string) RecordInterface
+	SetSoftDeletedAt(softDeletedAt string) RecordInterface
 	SetID(id string) RecordInterface
 	SetToken(token string) RecordInterface
 	SetUpdatedAt(updatedAt string) RecordInterface
