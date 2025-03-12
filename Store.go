@@ -21,7 +21,7 @@ type Store struct {
 	dbDriverName       string
 	automigrateEnabled bool
 	debugEnabled       bool
-	sqlLogger          *slog.Logger
+	logger             *slog.Logger
 }
 
 var _ StoreInterface = (*Store)(nil) // verify it extends the interface
