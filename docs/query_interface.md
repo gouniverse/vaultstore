@@ -59,11 +59,14 @@ The query interface provides the following methods for filtering and configuring
 ### Other Options
 
 - `SetCountOnly(countOnly bool)`: Set to true to only return the count of records
-- `SetWithDeleted(withDeleted bool)`: Set to true to include deleted records
+- `SetSoftDeletedInclude(softDeletedInclude bool)`: Set to true to include soft-deleted records in the results
+- `SetSoftDeletedOnly(softDeletedOnly bool)`: Set to true to only return soft-deleted records
 - `IsCountOnlySet()`: Check if countOnly is set
 - `GetCountOnly()`: Get the current countOnly value
-- `IsWithDeletedSet()`: Check if withDeleted is set
-- `GetWithDeleted()`: Get the current withDeleted value
+- `IsSoftDeletedIncludeSet()`: Check if softDeletedInclude is set
+- `GetSoftDeletedInclude()`: Get the current softDeletedInclude value
+- `IsSoftDeletedOnlySet()`: Check if softDeletedOnly is set
+- `GetSoftDeletedOnly()`: Get the current softDeletedOnly value
 
 ### Validation
 
@@ -126,13 +129,25 @@ if err != nil {
 }
 ```
 
-### Including Deleted Records
+### Including Soft-Deleted Records
 
 ```go
 query := vaultstore.RecordQuery().
-    SetWithDeleted(true)
+    SetSoftDeletedInclude(true)
 
 records, err := store.RecordList(ctx, query)
+if err != nil {
+    // Handle error
+}
+```
+
+### Retrieving Only Soft-Deleted Records
+
+```go
+query := vaultstore.RecordQuery().
+    SetSoftDeletedOnly(true)
+
+softDeletedRecords, err := store.RecordList(ctx, query)
 if err != nil {
     // Handle error
 }
@@ -143,4 +158,4 @@ if err != nil {
 1. The query interface is designed to be immutable - each method returns a new instance of the query.
 2. When using `SetCountOnly(true)`, the `SetLimit` and `SetOffset` methods will be ignored.
 3. The default sort order is descending ("desc") if not specified.
-4. By default, deleted records are not included in the results. Use `SetWithDeleted(true)` to include them.
+4. By default, soft-deleted records are not included in the results. Use `SetSoftDeletedInclude(true)` to include them.

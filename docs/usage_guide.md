@@ -111,6 +111,41 @@ if err != nil {
 }
 ```
 
+### Soft Deleting a Secret
+
+Soft deletion marks a record as deleted without actually removing it from the database. This allows for potential recovery of deleted data. To soft delete a secret, use the `TokenSoftDelete` method:
+
+```go
+ctx := context.Background()
+token := "your-token"
+
+err := store.TokenSoftDelete(ctx, token)
+if err != nil {
+    panic(err)
+}
+```
+
+Soft-deleted records are not returned by default when using methods like `TokenExists`, `RecordFindByToken`, or `RecordList`. However, you can include soft-deleted records in your queries using the query interface:
+
+```go
+// Include soft-deleted records in a list query
+query := vaultstore.RecordQuery().SetSoftDeletedInclude(true)
+records, err := store.RecordList(ctx, query)
+
+// Retrieve only soft-deleted records
+onlySoftDeleted := vaultstore.RecordQuery().SetSoftDeletedOnly(true)
+deletedRecords, err := store.RecordList(ctx, onlySoftDeleted)
+
+// Find a specific soft-deleted record by token
+query = vaultstore.RecordQuery().SetToken("your-token").SetSoftDeletedInclude(true)
+records, err = store.RecordList(ctx, query)
+if len(records) > 0 {
+    // Found the soft-deleted record
+    record := records[0]
+    fmt.Println("Found soft-deleted record:", record.GetToken())
+}
+```
+
 ### Checking if a Token Exists
 
 To check if a token exists, use the `TokenExists` method:

@@ -13,7 +13,7 @@ The table has the following columns:
 - `vault_value`: The encrypted secret value
 - `created_at`: Timestamp when the record was created
 - `updated_at`: Timestamp when the record was last updated
-- `deleted_at`: Timestamp when the record was deleted (for soft deletes)
+- `soft_deleted_at`: Timestamp when the record was soft deleted
 
 ## Record Structure
 
@@ -32,7 +32,7 @@ It embeds `dataobject.DataObject` for storing data. The struct provides methods 
 - `Value()` / `SetValue(value string)`: Get/set the record's encrypted value
 - `CreatedAt()` / `SetCreatedAt(createdAt string)`: Get/set the record's creation timestamp
 - `UpdatedAt()` / `SetUpdatedAt(updatedAt string)`: Get/set the record's update timestamp
-- `DeletedAt()` / `SetDeletedAt(deletedAt string)`: Get/set the record's deletion timestamp
+- `SoftDeletedAt()` / `SetSoftDeletedAt(softDeletedAt string)`: Get/set the record's soft deletion timestamp
 
 ## Query Interface
 
@@ -43,7 +43,8 @@ Key features of the query interface:
 - Filtering by ID or token (single or multiple values)
 - Pagination with limit and offset
 - Sorting with order by and sort direction
-- Option to include deleted records
+- Option to include soft-deleted records with `SetSoftDeletedInclude(true)`
+- Option to retrieve only soft-deleted records with `SetSoftDeletedOnly(true)`
 - Option to only count records
 
 For detailed usage examples, see the [Query Interface documentation](./query_interface.md).

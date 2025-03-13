@@ -20,6 +20,15 @@ VaultStore is meant to be integrated into your application as a library, providi
 - [Query Interface](/docs/query_interface.md) - Documentation for the flexible query interface
 - [Data Stores](/docs/data_stores.md) - Information about the data store implementation
 
+## Features
+
+- Secure storage of sensitive data
+- Token-based access to secrets
+- Password protection for stored values
+- Flexible query interface for retrieving records
+- Soft delete functionality for data recovery
+- Support for multiple database backends
+
 ## License
 
 This project is licensed under the GNU Affero General Public License v3.0 (AGPL-3.0). You can find a copy of the license at [https://www.gnu.org/licenses/agpl-3.0.en.html](https://www.gnu.org/licenses/agpl-3.0.txt)
@@ -42,7 +51,7 @@ The following schema is used for the database.
 | vault_value | Long Text        |
 | created_at  | DateTime         |
 | updated_at  | DateTime         |
-| soft_deleted_at | DateTime         |
+| soft_deleted_at | DateTime     |
 
 ## Setup
 
@@ -57,49 +66,27 @@ vault, err := NewStore(NewStoreOptions{
 
 ## Usage
 
-- Stores a value to the vault and returns a token
+Here are some basic examples of using VaultStore. For comprehensive documentation, see the [Usage Guide](/docs/usage_guide.md).
 
 ```golang
-token, err = vault.TokenCreate("my_value", "my_password", 20)
+// Create a token
+token, err := vault.TokenCreate("my_value", "my_password", 20)
 
-if err != nil {
-  print("Create Failure: " + err.Error())
-}
-```
-
-- Check a token exists
-
-```golang
+// Check if a token exists
 exists, err := vault.TokenExists(token)
 
-if err != nil {
-  print("Delete Failed: " + errDelete.Error())
-}
+// Read a value using a token
+value, err := vault.TokenRead(token, "my_password")
 
-if (!exists) {
-    print("token does not exist")
-}
-```
+// Update a token's value
+err := vault.TokenUpdate(token, "new_value", "my_password")
 
-- Retrieve a value from the vault by its token
-
-```golang
-val, err := vault.TokenRead(token, "test_pass")
-
-if err != nil {
-  print("Read failed:" + err.Error())
-}
-```
-
-- Delete a value from the vault by its token
-
-```golang
+// Delete a token
 err := vault.TokenDelete(token)
-if err != nil {
-  print("Delete failed: " + err.Error())
-}
-```
 
+// Soft delete a token
+err := vault.TokenSoftDelete(token)
+```
 
 ## 🌏  Development in the Cloud 
 
