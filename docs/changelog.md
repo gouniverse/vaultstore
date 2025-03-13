@@ -8,11 +8,11 @@ This document contains the version history and changes for the VaultStore projec
 - Added soft delete functionality and token soft delete method
 
 ### 2025.03.12
-- Added query interface and record interface
+- Added record query interface and record interface
 - Improved test coverage
 
 ### 2025.01.15
-- Updated interface
+- Updated store interface
 
 ## 2024
 

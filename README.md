@@ -40,18 +40,9 @@ For commercial use, please use my [contact page](https://lesichkov.co.uk/contact
 go get -u github.com/gouniverse/valuestore
 ```
 
-## Table Schema ##
+## Technical Details
 
-The following schema is used for the database.
-
-| vault       |                  |
-|-------------|------------------|
-| id          | String, UniqueId |
-| vault_token | Long Text, Unique|
-| vault_value | Long Text        |
-| created_at  | DateTime         |
-| updated_at  | DateTime         |
-| soft_deleted_at | DateTime     |
+For database schema, record structure, and other technical information, please see the [Technical Reference](/docs/technical_reference.md).
 
 ## Setup
 
@@ -81,7 +72,7 @@ value, err := vault.TokenRead(token, "my_password")
 // Update a token's value
 err := vault.TokenUpdate(token, "new_value", "my_password")
 
-// Delete a token
+// Hard delete a token
 err := vault.TokenDelete(token)
 
 // Soft delete a token

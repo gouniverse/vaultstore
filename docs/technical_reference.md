@@ -8,12 +8,14 @@ VaultStore uses a single table to store records. The table name is configurable 
 
 The table has the following columns:
 
-- `id`: Primary key, a unique identifier for the record
-- `vault_token`: The token used to access the secret
-- `vault_value`: The encrypted secret value
-- `created_at`: Timestamp when the record was created
-- `updated_at`: Timestamp when the record was last updated
-- `soft_deleted_at`: Timestamp when the record was soft deleted
+| Column | Type | Description |
+|--------|------|-------------|
+| id | String | Primary key, a unique identifier for the record (Human Friendly UUID) |
+| vault_token | Long Text | Unique token used to access the secret |
+| vault_value | Long Text | The encrypted secret value |
+| created_at | DateTime | Timestamp when the record was created |
+| updated_at | DateTime | Timestamp when the record was last updated |
+| soft_deleted_at | DateTime | Timestamp when the record was soft deleted (MAX_DATE if not deleted) |
 
 ## Record Structure
 
