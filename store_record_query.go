@@ -66,13 +66,13 @@ func (q *recordQueryImpl) Validate() error {
 	return nil
 }
 
-func (rq *recordQueryImpl) toSelectDataset(store StoreInterface) (*goqu.SelectDataset, error) {
+func (rq *recordQueryImpl) toSelectDataset(store StoreInterface) (selectDataset *goqu.SelectDataset, selectColumns []any, err error) {
 	if store == nil {
-		return nil, errors.New("store is nil")
+		return nil, []any{}, errors.New("store is nil")
 	}
 
 	if err := rq.Validate(); err != nil {
-		return nil, err
+		return nil, []any{}, err
 	}
 
 	q := goqu.Dialect(store.GetDbDriverName()).From(store.GetVaultTableName())
@@ -116,11 +116,41 @@ func (rq *recordQueryImpl) toSelectDataset(store StoreInterface) (*goqu.SelectDa
 		}
 	}
 
-	if !rq.IsWithDeletedSet() {
-		q = q.Where(goqu.C(COLUMN_SOFT_DELETED_AT).Gt(carbon.Now(carbon.UTC).ToDateTimeString()))
+	columns := []any{}
+
+	for _, column := range rq.GetColumns() {
+		columns = append(columns, column)
 	}
 
-	return q, nil
+	if rq.IsSoftDeletedIncludeSet() {
+		// soft deleted requested specifically
+		return q, columns, nil
+	}
+
+	// To exclude soft-deleted records, we need to find records where:
+	// soft_deleted_at is greater than current time (not soft-deleted)
+	// When a record is soft-deleted, soft_deleted_at is set to the current time
+	// By default, soft_deleted_at is set to MAX_DATETIME (not soft-deleted)
+	softDeletedFilter := goqu.C(COLUMN_SOFT_DELETED_AT).
+		Gt(carbon.Now(carbon.UTC).ToDateTimeString())
+
+	return q.Where(softDeletedFilter), columns, nil
+}
+
+func (q *recordQueryImpl) IsColumnsSet() bool {
+	return q.hasProperty("columns")
+}
+
+func (q *recordQueryImpl) GetColumns() []string {
+	if q.IsColumnsSet() {
+		return q.properties["columns"].([]string)
+	}
+	return []string{}
+}
+
+func (q *recordQueryImpl) SetColumns(columns []string) RecordQueryInterface {
+	q.properties["columns"] = columns
+	return q
 }
 
 func (q *recordQueryImpl) IsIDSet() bool {
@@ -251,19 +281,19 @@ func (q *recordQueryImpl) SetSortOrder(sortOrder string) RecordQueryInterface {
 	return q
 }
 
-func (q *recordQueryImpl) IsWithDeletedSet() bool {
-	return q.hasProperty("withDeleted")
+func (q *recordQueryImpl) IsSoftDeletedIncludeSet() bool {
+	return q.hasProperty("softDeletedInclude")
 }
 
-func (q *recordQueryImpl) GetWithDeleted() bool {
-	if q.IsWithDeletedSet() {
-		return q.properties["withDeleted"].(bool)
+func (q *recordQueryImpl) GetSoftDeletedInclude() bool {
+	if q.IsSoftDeletedIncludeSet() {
+		return q.properties["softDeletedInclude"].(bool)
 	}
 	return false
 }
 
-func (q *recordQueryImpl) SetWithDeleted(withDeleted bool) RecordQueryInterface {
-	q.properties["withDeleted"] = withDeleted
+func (q *recordQueryImpl) SetSoftDeletedInclude(softDeletedInclude bool) RecordQueryInterface {
+	q.properties["softDeletedInclude"] = softDeletedInclude
 	return q
 }
 

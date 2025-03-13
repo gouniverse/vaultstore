@@ -53,7 +53,20 @@ func (store *Store) TokenCreateCustom(ctx context.Context, token string, data st
 }
 
 // TokenDelete deletes a token from the store
+//
+// # If the supplied token is empty, an error is returned
+//
+// Parameters:
+// - ctx: The context
+// - token: The token to delete
+//
+// Returns:
+// - err: An error if something went wrong
 func (st *Store) TokenDelete(ctx context.Context, token string) error {
+	if token == "" {
+		return errors.New("token is empty")
+	}
+
 	return st.RecordDeleteByToken(ctx, token)
 }
 
@@ -112,6 +125,27 @@ func (st *Store) TokenRead(ctx context.Context, token string, password string) (
 	}
 
 	return decoded, nil
+}
+
+// TokenSoftDelete soft deletes a token from the store
+//
+// Soft deleting keeps the record in the database but marks it
+// as soft deleted and soft deleted records are not returned by default
+//
+// # If the supplied token is empty, an error is returned
+//
+// Parameters:
+// - ctx: The context
+// - token: The token to soft delete
+//
+// Returns:
+// - err: An error if something went wrong
+func (st *Store) TokenSoftDelete(ctx context.Context, token string) error {
+	if token == "" {
+		return errors.New("token is empty")
+	}
+
+	return st.RecordSoftDeleteByToken(ctx, token)
 }
 
 // TokenUpdate updates the value of a token

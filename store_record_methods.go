@@ -14,7 +14,7 @@ import (
 
 func (store *Store) RecordCount(ctx context.Context, query RecordQueryInterface) (int64, error) {
 	query = query.SetCountOnly(true)
-	dataset, err := query.toSelectDataset(store)
+	dataset, _, err := query.toSelectDataset(store)
 
 	if err != nil {
 		return -1, err
@@ -148,42 +148,18 @@ func (st *Store) RecordFindByID(ctx context.Context, id string) (RecordInterface
 		return nil, errors.New("record id is empty")
 	}
 
-	sqlStr, _, errSql := goqu.Dialect(st.dbDriverName).
-		From(st.vaultTableName).
-		Where(goqu.Ex{COLUMN_ID: id}).
-		Limit(1).
-		ToSQL()
-
-	if errSql != nil {
-		if st.debugEnabled {
-			log.Println(errSql.Error())
-		}
-
-		return nil, errSql
-	}
-
-	if st.debugEnabled {
-		log.Println(sqlStr)
-	}
-
-	modelMaps, err := database.SelectToMapString(st.toQuerableContext(ctx), sqlStr)
-
+	// Use RecordList with a query to ensure consistent soft delete handling
+	query := RecordQuery().SetID(id).SetLimit(1)
+	records, err := st.RecordList(ctx, query)
 	if err != nil {
 		return nil, err
 	}
 
-	list := []RecordInterface{}
-
-	lo.ForEach(modelMaps, func(modelMap map[string]string, index int) {
-		model := NewRecordFromExistingData(modelMap)
-		list = append(list, model)
-	})
-
-	if len(list) == 0 {
+	if len(records) == 0 {
 		return nil, nil
 	}
 
-	return list[0], nil
+	return records[0], nil
 }
 
 // RecordFindByToken finds a record entity by token
@@ -202,8 +178,8 @@ func (st *Store) RecordFindByToken(ctx context.Context, token string) (RecordInt
 		return nil, errors.New("token is empty")
 	}
 
+	// Use the query interface to properly handle soft deletion
 	records, err := st.RecordList(ctx, RecordQuery().SetToken(token).SetLimit(1))
-
 	if err != nil {
 		return nil, err
 	}
@@ -215,7 +191,104 @@ func (st *Store) RecordFindByToken(ctx context.Context, token string) (RecordInt
 	return records[0], nil
 }
 
+func (store *Store) RecordList(ctx context.Context, query RecordQueryInterface) ([]RecordInterface, error) {
+	err := query.Validate()
+
+	if err != nil {
+		return []RecordInterface{}, err
+	}
+
+	dataset, columns, err := query.toSelectDataset(store)
+
+	if err != nil {
+		return []RecordInterface{}, err
+	}
+
+	sqlStr, sqlParams, errSql := dataset.Select(columns...).Prepared(true).ToSQL()
+
+	if errSql != nil {
+		return []RecordInterface{}, nil
+	}
+
+	if store.debugEnabled {
+		log.Println(sqlStr)
+	}
+
+	modelMaps, err := database.SelectToMapString(store.toQuerableContext(ctx), sqlStr, sqlParams...)
+
+	if err != nil {
+		return []RecordInterface{}, err
+	}
+
+	list := []RecordInterface{}
+
+	lo.ForEach(modelMaps, func(modelMap map[string]string, index int) {
+		model := NewRecordFromExistingData(modelMap)
+		list = append(list, model)
+	})
+
+	return list, nil
+}
+
+// RecordSoftDelete soft deletes a record by setting the soft_deleted_at column to the current time
+func (store *Store) RecordSoftDelete(ctx context.Context, record RecordInterface) error {
+	if record == nil {
+		return errors.New("record is nil")
+	}
+
+	// Set the soft_deleted_at field to the current time
+	record.SetSoftDeletedAt(carbon.Now(carbon.UTC).ToDateTimeString(carbon.UTC))
+
+	return store.RecordUpdate(ctx, record)
+}
+
+// RecordSoftDeleteByID soft deletes a record by ID by setting the soft_deleted_at column to the current time
+func (store *Store) RecordSoftDeleteByID(ctx context.Context, recordID string) error {
+	if recordID == "" {
+		return errors.New("record id is empty")
+	}
+
+	// Find the record first
+	record, err := store.RecordFindByID(ctx, recordID)
+	if err != nil {
+		return err
+	}
+
+	if record == nil {
+		return errors.New("record not found")
+	}
+
+	return store.RecordSoftDelete(ctx, record)
+}
+
+// RecordSoftDeleteByToken soft deletes a record by token by setting the soft_deleted_at column to the current time
+func (store *Store) RecordSoftDeleteByToken(ctx context.Context, token string) error {
+	if token == "" {
+		return errors.New("token is empty")
+	}
+
+	// Find the record first
+	record, err := store.RecordFindByToken(ctx, token)
+	if err != nil {
+		return err
+	}
+
+	if record == nil {
+		return errors.New("record not found")
+	}
+
+	return store.RecordSoftDelete(ctx, record)
+}
+
 func (store *Store) RecordUpdate(ctx context.Context, record RecordInterface) error {
+	if record == nil {
+		return errors.New("record is nil")
+	}
+
+	if record.GetID() == "" {
+		return errors.New("record id is empty")
+	}
+
 	record.SetUpdatedAt(carbon.Now(carbon.UTC).ToDateTimeString(carbon.UTC))
 
 	dataChanged := record.DataChanged()
@@ -250,104 +323,3 @@ func (store *Store) RecordUpdate(ctx context.Context, record RecordInterface) er
 
 	return nil
 }
-
-func (store *Store) RecordList(ctx context.Context, query RecordQueryInterface) ([]RecordInterface, error) {
-	err := query.Validate()
-
-	if err != nil {
-		return []RecordInterface{}, err
-	}
-
-	dataset, err := query.toSelectDataset(store)
-
-	if err != nil {
-		return []RecordInterface{}, err
-	}
-
-	sqlStr, sqlParams, errSql := dataset.Select().Prepared(true).ToSQL()
-
-	if errSql != nil {
-		return []RecordInterface{}, nil
-	}
-
-	if store.debugEnabled {
-		log.Println(sqlStr)
-	}
-
-	modelMaps, err := database.SelectToMapString(store.toQuerableContext(ctx), sqlStr, sqlParams...)
-
-	if err != nil {
-		return []RecordInterface{}, err
-	}
-
-	list := []RecordInterface{}
-
-	lo.ForEach(modelMaps, func(modelMap map[string]string, index int) {
-		model := NewRecordFromExistingData(modelMap)
-		list = append(list, model)
-	})
-
-	return list, nil
-}
-
-// type RecordQueryOptions struct {
-// 	ID          string
-// 	IDIn        []string
-// 	Token       string
-// 	TokenIn     []string
-// 	Offset      int
-// 	OrderBy     string
-// 	Limit       int
-// 	CountOnly   bool
-// 	SortOrder   string
-// 	WithDeleted bool
-// }
-
-// func (store *Store) recordQuery(options RecordQueryOptions) *goqu.SelectDataset {
-// 	q := goqu.Dialect(store.dbDriverName).From(store.vaultTableName)
-
-// 	if options.ID != "" {
-// 		q = q.Where(goqu.C("id").Eq(options.ID))
-// 	}
-
-// 	if options.Token != "" {
-// 		q = q.Where(goqu.C(COLUMN_VAULT_TOKEN).Eq(options.Token))
-// 	}
-
-// 	if len(options.IDIn) > 0 {
-// 		q = q.Where(goqu.C(COLUMN_ID).In(options.IDIn))
-// 	}
-
-// 	if len(options.TokenIn) > 0 {
-// 		q = q.Where(goqu.C(COLUMN_VAULT_TOKEN).In(options.TokenIn))
-// 	}
-
-// 	if !options.CountOnly {
-// 		if options.Limit > 0 {
-// 			q = q.Limit(uint(options.Limit))
-// 		}
-
-// 		if options.Offset > 0 {
-// 			q = q.Offset(uint(options.Offset))
-// 		}
-// 	}
-
-// 	sortOrder := sb.DESC
-// 	if options.SortOrder != "" {
-// 		sortOrder = options.SortOrder
-// 	}
-
-// 	if options.OrderBy != "" {
-// 		if strings.EqualFold(sortOrder, sb.ASC) {
-// 			q = q.Order(goqu.I(options.OrderBy).Asc())
-// 		} else {
-// 			q = q.Order(goqu.I(options.OrderBy).Desc())
-// 		}
-// 	}
-
-// 	if !options.WithDeleted {
-// 		q = q.Where(goqu.C(COLUMN_DELETED_AT).Gt(carbon.Now(carbon.UTC).ToDateTimeString()))
-// 	}
-
-// 	return q
-// }

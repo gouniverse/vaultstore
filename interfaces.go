@@ -30,7 +30,10 @@ type RecordInterface interface {
 
 type RecordQueryInterface interface {
 	Validate() error
-	toSelectDataset(store StoreInterface) (*goqu.SelectDataset, error)
+	toSelectDataset(store StoreInterface) (selectDataset *goqu.SelectDataset, columns []any, err error)
+
+	GetColumns() []string
+	SetColumns(columns []string) RecordQueryInterface
 
 	IsIDSet() bool
 	GetID() string
@@ -68,9 +71,9 @@ type RecordQueryInterface interface {
 	GetSortOrder() string
 	SetSortOrder(sortOrder string) RecordQueryInterface
 
-	IsWithDeletedSet() bool
-	GetWithDeleted() bool
-	SetWithDeleted(withDeleted bool) RecordQueryInterface
+	IsSoftDeletedIncludeSet() bool
+	GetSoftDeletedInclude() bool
+	SetSoftDeletedInclude(softDeletedInclude bool) RecordQueryInterface
 }
 
 type StoreInterface interface {
@@ -87,6 +90,9 @@ type StoreInterface interface {
 	RecordFindByID(ctx context.Context, recordID string) (RecordInterface, error)
 	RecordFindByToken(ctx context.Context, token string) (RecordInterface, error)
 	RecordList(ctx context.Context, query RecordQueryInterface) ([]RecordInterface, error)
+	RecordSoftDelete(ctx context.Context, record RecordInterface) error
+	RecordSoftDeleteByID(ctx context.Context, recordID string) error
+	RecordSoftDeleteByToken(ctx context.Context, token string) error
 	RecordUpdate(ctx context.Context, record RecordInterface) error
 
 	TokenCreate(ctx context.Context, value string, password string, tokenLength int) (token string, err error)
