@@ -1,5 +1,9 @@
 # Secret Versioning System
 
+## Status: Needs Refinement
+- What about new passwords for new versions?
+- How to handle password changes?
+
 ## Overview
 
 This proposal suggests implementing a versioning system for secrets in VaultStore, allowing users to track changes, roll back to previous versions, and maintain a history of secret values.
@@ -35,11 +39,11 @@ Example new methods:
 
 ```go
 // New method signatures
-TokenReadVersion(ctx context.Context, token string, password string, version int) (value string, err error)
-TokenListVersions(ctx context.Context, token string, password string) ([]VersionInfo, error)
-TokenRollbackToVersion(ctx context.Context, token string, password string, version int) error
+TokenVersionRead(ctx context.Context, token string, password string, version int) (value string, err error)
+TokenVersionList(ctx context.Context, token string, password string) ([]VersionInfo, error)
+TokenVersionRollback(ctx context.Context, token string, password string, version int) error
 TokenUpdateWithComment(ctx context.Context, token string, value string, password string, comment string) error
-TokenPruneVersions(ctx context.Context, token string, password string, keepLatest int) error
+TokenVersionPrune(ctx context.Context, token string, password string, keepLatest int) error
 ```
 
 ## Benefits

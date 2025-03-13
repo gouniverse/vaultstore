@@ -1,5 +1,7 @@
 # Access Control and Permissions
 
+## Status: Rejected (Beyond Scope)
+
 ## Overview
 
 This proposal suggests implementing a comprehensive access control and permissions system for VaultStore, allowing fine-grained control over who can access and modify specific secrets.

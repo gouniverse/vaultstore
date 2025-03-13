@@ -1,5 +1,9 @@
 # Token Expiration Functionality
 
+## Status: Requires Refinement
+- Does it need another column? Why not separate meta table?
+- Who will run the process? The client? The library?
+
 ## Overview
 
 This proposal suggests adding expiration functionality to tokens in VaultStore, allowing secrets to automatically expire after a specified time period.

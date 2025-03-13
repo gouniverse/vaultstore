@@ -1,5 +1,7 @@
 # API and Integration Improvements
 
+## Status: Rejected (Beyond Scope)
+
 ## Overview
 
 This proposal suggests enhancing the VaultStore API and adding integration capabilities to make it more versatile and easier to use with other systems.

@@ -2,6 +2,11 @@
 
 *Proposal Date: March 12, 2025*
 
+## Status: Needs Refinement
+- Do we need an extra column? How much is the overhead?
+- Why not separate meta table? How much is the overhead?
+- Security?
+
 ## Overview
 
 This proposal suggests implementing password hashing and rekeying functionality in VaultStore to enhance security and enable bulk operations on secrets that share the same password.

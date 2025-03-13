@@ -1,5 +1,8 @@
 # Audit Logging Functionality
 
+## Status: Needs Further Refinement
+Interesting proposal, but needs further refinement. As this is a data store component, it does not have notion of users or IP addresses. However, it may provide generic functionality to store custom audit logs (as defined by the user)
+
 ## Overview
 
 This proposal suggests implementing comprehensive audit logging for all operations performed on the VaultStore, providing a traceable history of secret access and modifications.

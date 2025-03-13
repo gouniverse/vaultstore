@@ -1,5 +1,10 @@
 # Enhanced Encryption Proposal
 
+## Status: Reviewed (2025.03.12)
+Spped has to be considered, especially for:
+- larger data (.e. files)
+- multiple token reads
+
 ## Overview
 
 This proposal suggests enhancing the encryption mechanism used in VaultStore to improve security and flexibility.
