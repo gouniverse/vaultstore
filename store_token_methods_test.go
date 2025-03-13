@@ -221,3 +221,76 @@ func Test_TokensRead(t *testing.T) {
 		}
 	}
 }
+
+func Test_Store_TokenSoftDelete(t *testing.T) {
+	store, err := initStore(":memory:")
+	if err != nil {
+		t.Fatalf("Test_Store_TokenSoftDelete: Expected [err] to be nil received [%v]", err.Error())
+	}
+
+	ctx := context.Background()
+
+	// Test with empty token
+	err = store.TokenSoftDelete(ctx, "")
+	if err == nil {
+		t.Fatal("Test_Store_TokenSoftDelete: Expected error for empty token but got nil")
+	}
+
+	// Create a token
+	token, err := store.TokenCreate(ctx, "test_val_soft_delete", "test_pass", 20)
+	if err != nil {
+		t.Fatalf("Test_Store_TokenSoftDelete: Failed to create token: [%v]", err.Error())
+	}
+
+	// Verify token exists
+	exists, err := store.TokenExists(ctx, token)
+	if err != nil {
+		t.Fatalf("Test_Store_TokenSoftDelete: Expected [err] to be nil received [%v]", err.Error())
+	}
+	if !exists {
+		t.Fatal("Test_Store_TokenSoftDelete: Expected token to exist before soft delete")
+	}
+
+	// Soft delete the token
+	err = store.TokenSoftDelete(ctx, token)
+	if err != nil {
+		t.Fatalf("Test_Store_TokenSoftDelete: Expected [err] to be nil received [%v]", err.Error())
+	}
+
+	// Verify token no longer exists after soft delete
+	exists, err = store.TokenExists(ctx, token)
+	if err != nil {
+		t.Fatalf("Test_Store_TokenSoftDelete: Expected [err] to be nil received [%v]", err.Error())
+	}
+	if exists {
+		t.Fatal("Test_Store_TokenSoftDelete: Expected token to not exist after soft delete")
+	}
+
+	// Verify record is not found with default query
+	record, err := store.RecordFindByToken(ctx, token)
+	if err != nil {
+		t.Fatalf("Test_Store_TokenSoftDelete: Expected [err] to be nil received [%v]", err.Error())
+	}
+	if record != nil {
+		t.Fatal("Test_Store_TokenSoftDelete: Expected not to find soft deleted record but found it")
+	}
+
+	// Verify record can be found when including soft deleted
+	query := RecordQuery().SetToken(token).SetSoftDeletedInclude(true)
+	records, err := store.RecordList(ctx, query)
+	if err != nil {
+		t.Fatalf("Test_Store_TokenSoftDelete: Failed to list records with soft deleted: [%v]", err.Error())
+	}
+	if len(records) != 1 {
+		t.Fatalf("Test_Store_TokenSoftDelete: Expected to find 1 soft deleted record but found %d", len(records))
+	}
+	if records[0].GetToken() != token {
+		t.Fatalf("Test_Store_TokenSoftDelete: Expected Token [%s] but got [%s]", token, records[0].GetToken())
+	}
+
+	// Test with non-existent token
+	err = store.TokenSoftDelete(ctx, "non_existent_token")
+	if err == nil {
+		t.Fatal("Test_Store_TokenSoftDelete: Expected error for non-existent token but got nil")
+	}
+}

@@ -42,7 +42,7 @@ The following schema is used for the database.
 | vault_value | Long Text        |
 | created_at  | DateTime         |
 | updated_at  | DateTime         |
-| deleted_at  | DateTime         |
+| soft_deleted_at | DateTime         |
 
 ## Setup
 

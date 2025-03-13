@@ -100,6 +100,7 @@ type StoreInterface interface {
 	TokenDelete(ctx context.Context, token string) error
 	TokenExists(ctx context.Context, token string) (bool, error)
 	TokenRead(ctx context.Context, token string, password string) (string, error)
+	TokenSoftDelete(ctx context.Context, token string) error
 	TokenUpdate(ctx context.Context, token string, value string, password string) error
 	TokensRead(ctx context.Context, tokens []string, password string) (map[string]string, error)
 }
